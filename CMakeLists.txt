@@ -89,6 +89,10 @@ add_executable(roller
     PROJECTS/ROLLER/transfrm.c
     PROJECTS/ROLLER/userfns.c
     PROJECTS/ROLLER/view.c
+    PROJECTS/ROLLER/crashdump.c
+    PROJECTS/ROLLER/scene_render.c
+    PROJECTS/ROLLER/scene_render_software.c
+    PROJECTS/ROLLER/snapshot_scenes.c
 )
 target_include_directories(roller PRIVATE external/Nuklear-4.13.2)
 target_link_libraries(roller PRIVATE SDL3::SDL3)

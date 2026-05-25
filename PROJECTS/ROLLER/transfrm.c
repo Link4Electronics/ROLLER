@@ -316,7 +316,7 @@ void initlocalsection(int iChunkIdx)
   fBankDelta = (fBankAngle - atan2(pointArray[1] - pointArray[4], pointArray[5] - pointArray[2])) * 16384.0 / 6.28318530718 + 0.5;
   //fBankDelta = (fBankAngle - atan2(pointArray[5] - pointArray[2], fBankAngle)) * 16384.0 / 6.28318530718 + 0.5;
   //fBankDelta = (fBankAngle - IF_DATAN2(nFpStatus2, pointArray[5] - pointArray[2], fBankAngle)) * 16384.0 / 6.28318530718 + 0.5;
-  floor(fBankDelta);
+  (void)floor(fBankDelta);
   //_CHP();
   pData->iBankDelta = (int)-fBankDelta;
 
@@ -441,15 +441,15 @@ void initlocalsection(int iChunkIdx)
   dWorkAngle = getdirection(matrixWork[22] - matrixWork[25], matrixWork[26] - matrixWork[23]);
   dCosY = 1.0 / 6.28318530718;                  // Convert angles to internal fixed-point format (16384 = 2pi radians)
   dAngleYFixed = dNextAngleYSaved * 16384.0 * dCosY + 0.5;
-  floor(dAngleYFixed);
+  (void)floor(dAngleYFixed);
   //_CHP();
   pData->iYaw = (int)dAngleYFixed;
   dAngleZFixed = dNextAngleZSaved * 16384.0 * dCosY + 0.5;
-  floor(dAngleZFixed);
+  (void)floor(dAngleZFixed);
   //_CHP();
   pData->iPitch = (int)dAngleZFixed;
   dAngleXFixed = dWorkAngle * 16384.0 * dCosY + 0.5;
-  floor(dAngleXFixed);
+  (void)floor(dAngleXFixed);
   //_CHP();
   pData->iPitch &= 0x3FFFu;
   iYawTemp = pData->iYaw;
@@ -888,11 +888,11 @@ void dopitchchanges(int iLLaneIdx, int iRLaneIdx)
 
       // Store calculated pitch angle: iUnk18 for inner lanes, iUnk19 for outer lanes
       if (iLeftLaneIndex) {
-        floor(dStoredPitchAngle);
+        (void)floor(dStoredPitchAngle);
         //_CHP();
         pOutputTrackData->iOuterLanePitchAngle = (int)dFinalLanePitchAngle;
       } else {
-        floor(dStoredPitchAngle);
+        (void)floor(dStoredPitchAngle);
         //_CHP();
         pOutputTrackData->iInnerLanePitchAngle = (int)dFinalLanePitchAngle;
       }

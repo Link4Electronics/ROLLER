@@ -1,0 +1,3 @@
+/run/media/orestes/Guinea_pig/Projetos/ROLLER/build_cmake/CMakeFiles/roller.dir
+/run/media/orestes/Guinea_pig/Projetos/ROLLER/build_cmake/CMakeFiles/edit_cache.dir
+/run/media/orestes/Guinea_pig/Projetos/ROLLER/build_cmake/CMakeFiles/rebuild_cache.dir
