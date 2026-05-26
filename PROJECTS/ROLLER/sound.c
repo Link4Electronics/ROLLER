@@ -900,9 +900,8 @@ bool setpal(const char *szFilename)
     palette[i].byB = pRaw[i * 3 + 2];
   }
 
-  pal_addr = (tColor *)palette;
-  pal_selector = (void *)-1; // pal_addr points to global array, not malloc'd
-  free(pFileData);
+  pal_addr = pFileData;
+  pal_selector = pFileData;
 
   // If cheat mode flag is set, apply grayscale filter
   if (cheat_mode & CHEAT_MODE_GRAYSCALE) {
