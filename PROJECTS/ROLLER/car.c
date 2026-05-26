@@ -1552,7 +1552,7 @@ LABEL_117:
       CarPt[iCoordOffset / 0x20].world.fY = (float)(dTransformedX * fRotMat01 + dTransformedY * fRotMat12 + dTransformedZ * fRotMat11 + fCarPosY);
       iCurrentChunk = iCurrChunk;
       CarPt[iCoordOffset / 0x20].world.fZ = (float)(dTransformedX * fRotMat02 + dTransformedY * fRotMat21 + dTransformedZ * fRotMat22Copy + fCarPosZ);
-      if (iCurrentChunk != -1) {
+      if (pChunkData != NULL) {
         dChunkTransformY = pChunkData->pointAy[0].fY;
         fModelWorldX = CarPt[iCoordOffset / 0x20].world.fX;
         fModelWorldY = CarPt[iCoordOffset / 0x20].world.fY;
