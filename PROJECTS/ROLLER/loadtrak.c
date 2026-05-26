@@ -971,7 +971,7 @@ void read_backs(uint8 **ppTrackData)
         iBacksEnd = -1;
     } else {
       pTrackData = *ppTrackData;
-      memgets(fp_buf, ppTrackData);
+      memgets(fp_buf, ppTrackData, sizeof(fp_buf));
       if (pTrackData == *ppTrackData)
         return;
       if (fp_buf[0] == 'B' && fp_buf[1] == 'A' && fp_buf[2] == 'C' && fp_buf[3] == 'K' && fp_buf[4] == 'S')
@@ -991,7 +991,7 @@ void read_texturemap(uint8 **ppTrackData)
   char byChar; // bl
 
   do
-    memgets(fp_buf, ppTrackData);      // Read lines from track data until we find a line starting with 'T' (texture map entry)
+    memgets(fp_buf, ppTrackData, sizeof(fp_buf));
   while (fp_buf[0] != 84);
   pszBufPtr = fp_buf;
   do
@@ -1027,7 +1027,7 @@ void read_bldmap(uint8 **ppTrackData)
   *ppTrackData = start_f;              // Reset track data pointer to start of file for searching
   do {
     pbyPrevPos = *ppTrackData;
-    memgets(fp_buf, ppTrackData);               // Read next line from track data
+    memgets(fp_buf, ppTrackData, sizeof(fp_buf));
     if (pbyPrevPos == *ppTrackData)           // Check if we reached end of file (pointer didn't advance)
       iFoundBLD = -1;
     if (fp_buf[0] == 66 && fp_buf[1] == 76 && fp_buf[2] == 68)// Check if line starts with "BLD" (building map entry)
@@ -1324,17 +1324,20 @@ void readline(FILE *pFile, const char *szFmt, ...)
 
 //-------------------------------------------------------------------------------------------------
 //0004DDF0
-uint8 *memgets(uint8 *pDst, uint8 **ppSrc)
+uint8 *memgets(uint8 *pDst, uint8 **ppSrc, int maxLen)
 {
   int iEof; // esi
   uint8 *pDst2; // eax
   uint8 byte; // bl
   uint8 *ppSrcNext; // ebx
+  int iLen; // ecx
 
   iEof = 0;
   do {
     pDst2 = pDst;
+    iLen = 0;
     do {
+      if (iLen >= maxLen - 1) goto done;
       byte = **ppSrc;
       *pDst2 = byte;
       if (byte == 0x1A)
@@ -1342,8 +1345,11 @@ uint8 *memgets(uint8 *pDst, uint8 **ppSrc)
       ppSrcNext = *ppSrc + 1;
       *ppSrc = ppSrcNext;
       ++pDst2;
+      ++iLen;
     } while (*(ppSrcNext - 1) > 13u && !iEof);
   } while (*pDst <= 13u);
+done:
+  *pDst2 = '\0';
   meof = iEof;
   return pDst2;
 }
@@ -1363,7 +1369,7 @@ void readline2(uint8 **ppFileData, const char *pszFormat, ...)
 
   while (1) {
       // Read next line from file into buffer
-    memgets((uint8 *)szLineBuffer, ppFileData);
+    memgets((uint8 *)szLineBuffer, ppFileData, sizeof(szLineBuffer));
 
     // Check for end of file
     if (meof)

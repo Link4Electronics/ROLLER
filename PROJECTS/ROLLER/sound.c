@@ -915,6 +915,7 @@ bool setpal(const char *szFilename)
   }
 
   palette_brightness = 0;
+  g_bPaletteSet = true;
   return true;
 }
 

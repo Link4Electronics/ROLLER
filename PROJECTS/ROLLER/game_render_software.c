@@ -85,6 +85,7 @@ void game_render_sw_end_frame(GameRendererSoftware *sw) {
     game_render_sw_start_pending_fade_in(sw);
     if (fade_palette_active())
         fade_palette_update();
+    g_bPaletteSet = true;
     UpdateSDLWindow();
 }
 
