@@ -1399,6 +1399,8 @@ int ROLLERrename(const char *szOldName, const char *szNewName)
 
 //-------------------------------------------------------------------------------------------------
 
+static bool ROLLERMutexIsValid(SDL_Mutex *pMutex);
+
 uint32 ROLLERAddTimer(Uint32 uiFrequencyHz, SDL_NSTimerCallback callback, void *userdata)
 {
   if (ROLLERMutexIsValid(g_pTimerMutex))
