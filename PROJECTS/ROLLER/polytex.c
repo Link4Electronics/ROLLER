@@ -194,6 +194,12 @@ void setmapsel(uint8_t *pBase, int iIndex, int iMode, int iCount)
 // Store pointer in mapsel array
     mapsel[iBaseMapselIndex + i] = pTexturePointer;
   }
+
+  // Fill remaining slot entries with the base pointer, so that any
+  // out-of-range surface type (beyond iCount but within 0..255) still
+  // accesses valid memory instead of crashing with a garbage address.
+  for (int j = iCount; j < 256; ++j)
+    mapsel[iBaseMapselIndex + j] = pBase;
 }
 
 //-------------------------------------------------------------------------------------------------
