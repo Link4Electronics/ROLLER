@@ -1235,8 +1235,8 @@ void activatestunts()
 //0004DA90
 void ReadAnimData(FILE *pFile, uint8 **ppFileData)
 {
-  int iSignType; // [esp+0h] [ebp-14h] BYREF
-  int iSignTex; // [esp+4h] [ebp-10h] BYREF
+  int16 iSignType; // [esp+0h] [ebp-14h] BYREF
+  int16 iSignTex; // [esp+4h] [ebp-10h] BYREF
 
   iSignType = 0;
   iSignTex = 0;
