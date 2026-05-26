@@ -158,25 +158,34 @@ void remove_mapsels()
 void setmapsel(uint8_t *pBase, int iIndex, int iMode, int iCount)
 {
 // Calculate base offset in mapsel array for this texture index
-// Original used 257 * iIndex, but since we changed from int16 to uint8*, 
-// and POLYTEX uses 514 * iTexIdx, we need to adjust
+// Each texture block has 257 entries (256 surface types + 1).
+// Original DOS code used int16[19][257] → 514-byte stride.
+// Now with uint8*[4884] → 257-entry stride.
   int iBaseMapselIndex = 257 * iIndex;
 
   // Set up pointers for each texture
   for (int i = 0; i < iCount; i++) {
     uint8_t *pTexturePointer;
 
-    if (iMode == 1) {
-        // Mode 1: 8-segment grouping (32x32 textures)
-        // Original: iCoarseOffset = (i >> 3 << 13) + iBaseAdjusted;
-        //          iFineOffset = 32 * (i & 7);
+    if (iMode == 1 || iMode == -1) {
+        // Mode 1 / -1: 8-segment grouping (32x32 textures)
+        // sort_mini_texture interleaves 8 textures per 8192-byte group
+        // with 256-byte row stride.  Each texture starts at:
+        //   (i / 8) * 8192 + (i % 8) * 32
+        // POLYTEX matches this when iGfxSize != 0:
+        //   row = (surfaceType / 8), col = (surfaceType % 8)
+        //   offset = row * 8192 + col * 32
       int iCoarseOffset = (i >> 3) << 13;  // (i / 8) * 8192
       int iFineOffset = 32 * (i & 7);      // 32 * (i % 8)
       pTexturePointer = pBase + iCoarseOffset + iFineOffset;
     } else {
         // Mode 0: 4-segment grouping (64x64 textures) - interleaved layout
-        // Original: iCoarseOffset = (i & 3) << 6;
-        //          iFineOffset = iBaseAdjusted + (i >> 2 << 14);
+        // sort_texture interleaves 4 textures per 16384-byte group
+        // with 256-byte row stride.  Each texture starts at:
+        //   (i / 4) * 16384 + (i % 4) * 64
+        // POLYTEX matches this when iGfxSize == 0:
+        //   row = (surfaceType / 4), col = (surfaceType % 4)
+        //   offset = row * 16384 + col * 64
       int iCoarseOffset = (i & 3) << 6;    // (i % 4) * 64
       int iFineOffset = (i >> 2) << 14;    // (i / 4) * 16384
       pTexturePointer = pBase + iFineOffset + iCoarseOffset;

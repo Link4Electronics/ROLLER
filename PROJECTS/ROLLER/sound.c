@@ -903,8 +903,11 @@ bool setpal(const char *szFilename)
   pal_addr = pFileData;
   pal_selector = pFileData;
 
-  // No byte-order fix needed: tColor is byte-level (3 uint8), layout is
-  // identical on LE and BE. The raw file bytes (R,G,B) work as-is.
+  // Fix raw buffer byte order: tColor struct has byR@0, byB@1, byG@2 but
+  // the file has R@0, G@1, B@2.  Copy the correctly-ordered palette[]
+  // data over the raw buffer so pal_addr field accesses return the
+  // expected colour planes.
+  memcpy(pFileData, palette, sizeof(tColor) * 256);
 
   // If cheat mode flag is set, apply grayscale filter
   if (cheat_mode & CHEAT_MODE_GRAYSCALE) {
