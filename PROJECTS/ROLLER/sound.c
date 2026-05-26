@@ -903,10 +903,8 @@ bool setpal(const char *szFilename)
   pal_addr = pFileData;
   pal_selector = pFileData;
 
-  // Fix raw buffer byte order: tColor struct reads R@0, B@1, G@2 but
-  // the file has R@0, G@1, B@2.  Copy the correctly-ordered palette[]
-  // data over the raw buffer so pal_addr works immediately on BE.
-  memcpy(pFileData, palette, sizeof(tColor) * 256);
+  // No byte-order fix needed: tColor is byte-level (3 uint8), layout is
+  // identical on LE and BE. The raw file bytes (R,G,B) work as-is.
 
   // If cheat mode flag is set, apply grayscale filter
   if (cheat_mode & CHEAT_MODE_GRAYSCALE) {
