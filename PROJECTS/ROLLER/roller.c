@@ -72,7 +72,19 @@ static SDL_Window *s_pWindow = NULL;
 static SDL_GPUDevice *s_pGPUDevice = NULL;
 static SDL_GPUTexture *s_pGameTexture = NULL;
 static SDL_GPUTransferBuffer *s_pTransferBuffer = NULL;
+static SDL_Surface *s_pWindowSurface = NULL;
 static int s_iGPUPresentSkipFrames = 0;
+
+static int ROLLERGpuAvailable(void) {
+    static int available = -1;
+    if (available < 0) {
+        const char *env = getenv("ROLLER_DISABLE_GPU");
+        available = (!env || strcmp(env, "1") != 0) ? 1 : 0;
+        if (!available)
+            SDL_Log("ROLLER: GPU disabled via ROLLER_DISABLE_GPU env var");
+    }
+    return available;
+}
 SDL_Gamepad *g_pController1 = NULL;
 SDL_Gamepad *g_pController2 = NULL;
 tJoyPos g_rollerJoyPos;
@@ -350,69 +362,79 @@ void UpdateSDLWindow()
   if (!g_bPaletteSet) return;
   if (ROLLERGpuPresentationSuspended()) return;
 
-  // Acquire command buffer
-  SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(s_pGPUDevice);
-  if (!cmdBuf) return;
+  if (s_pGPUDevice) {
+    // Acquire command buffer
+    SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(s_pGPUDevice);
+    if (!cmdBuf) return;
 
-  // Convert indexed framebuffer directly into mapped transfer buffer
-  void *mapped = SDL_MapGPUTransferBuffer(s_pGPUDevice, s_pTransferBuffer, false);
-  ConvertIndexedToRGBA(scrbuf, pal_addr, (uint8 *)mapped, winw, winh);
-  SDL_UnmapGPUTransferBuffer(s_pGPUDevice, s_pTransferBuffer);
+    // Convert indexed framebuffer directly into mapped transfer buffer
+    void *mapped = SDL_MapGPUTransferBuffer(s_pGPUDevice, s_pTransferBuffer, false);
+    ConvertIndexedToRGBA(scrbuf, pal_addr, (uint8 *)mapped, winw, winh);
+    SDL_UnmapGPUTransferBuffer(s_pGPUDevice, s_pTransferBuffer);
 
-  SDL_GPUCopyPass *copyPass = SDL_BeginGPUCopyPass(cmdBuf);
+    SDL_GPUCopyPass *copyPass = SDL_BeginGPUCopyPass(cmdBuf);
 
-  SDL_GPUTextureTransferInfo src = {0};
-  src.transfer_buffer = s_pTransferBuffer;
+    SDL_GPUTextureTransferInfo src = {0};
+    src.transfer_buffer = s_pTransferBuffer;
 
-  SDL_GPUTextureRegion dstRegion = {0};
-  dstRegion.texture = s_pGameTexture;
-  dstRegion.w = winw;
-  dstRegion.h = winh;
-  dstRegion.d = 1;
+    SDL_GPUTextureRegion dstRegion = {0};
+    dstRegion.texture = s_pGameTexture;
+    dstRegion.w = winw;
+    dstRegion.h = winh;
+    dstRegion.d = 1;
 
-  SDL_UploadToGPUTexture(copyPass, &src, &dstRegion, false);
-  SDL_EndGPUCopyPass(copyPass);
+    SDL_UploadToGPUTexture(copyPass, &src, &dstRegion, false);
+    SDL_EndGPUCopyPass(copyPass);
 
-  // Acquire swapchain and blit
-  SDL_GPUTexture *swapchainTex;
-  Uint32 swW, swH;
-  if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmdBuf, s_pWindow,
-          &swapchainTex, &swW, &swH) || !swapchainTex) {
-    SDL_CancelGPUCommandBuffer(cmdBuf);
-    return;
-  }
+    // Acquire swapchain and blit
+    SDL_GPUTexture *swapchainTex;
+    Uint32 swW, swH;
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmdBuf, s_pWindow,
+            &swapchainTex, &swW, &swH) || !swapchainTex) {
+      SDL_CancelGPUCommandBuffer(cmdBuf);
+      return;
+    }
 
-  // Blit with aspect-ratio preservation
-  SDL_GPUBlitInfo blitInfo = {0};
-  blitInfo.source.texture = s_pGameTexture;
-  blitInfo.source.w = winw;
-  blitInfo.source.h = winh;
+    // Blit with aspect-ratio preservation
+    SDL_GPUBlitInfo blitInfo = {0};
+    blitInfo.source.texture = s_pGameTexture;
+    blitInfo.source.w = winw;
+    blitInfo.source.h = winh;
 
-  float fWindowAspect = (float)swW / (float)swH;
-  float fTextureAspect = (float)winw / (float)winh;
+    float fWindowAspect = (float)swW / (float)swH;
+    float fTextureAspect = (float)winw / (float)winh;
 
-  if (fWindowAspect > fTextureAspect) {
-    Uint32 dstW = (Uint32)(fTextureAspect * swH);
-    blitInfo.destination.texture = swapchainTex;
-    blitInfo.destination.x = (swW - dstW) / 2;
-    blitInfo.destination.y = 0;
-    blitInfo.destination.w = dstW;
-    blitInfo.destination.h = swH;
+    if (fWindowAspect > fTextureAspect) {
+      Uint32 dstW = (Uint32)(fTextureAspect * swH);
+      blitInfo.destination.texture = swapchainTex;
+      blitInfo.destination.x = (swW - dstW) / 2;
+      blitInfo.destination.y = 0;
+      blitInfo.destination.w = dstW;
+      blitInfo.destination.h = swH;
+    } else {
+      Uint32 dstH = (Uint32)(swW / fTextureAspect);
+      blitInfo.destination.texture = swapchainTex;
+      blitInfo.destination.x = 0;
+      blitInfo.destination.y = (swH - dstH) / 2;
+      blitInfo.destination.w = swW;
+      blitInfo.destination.h = dstH;
+    }
+    blitInfo.filter = SDL_GPU_FILTER_NEAREST;
+    blitInfo.load_op = SDL_GPU_LOADOP_CLEAR;
+    blitInfo.clear_color = (SDL_FColor){0.0f, 0.0f, 0.0f, 1.0f};
+
+    SDL_BlitGPUTexture(cmdBuf, &blitInfo);
+    debug_overlay_render(s_pDebugOverlay, cmdBuf, swapchainTex, swW, swH);
+    SDL_SubmitGPUCommandBuffer(cmdBuf);
   } else {
-    Uint32 dstH = (Uint32)(swW / fTextureAspect);
-    blitInfo.destination.texture = swapchainTex;
-    blitInfo.destination.x = 0;
-    blitInfo.destination.y = (swH - dstH) / 2;
-    blitInfo.destination.w = swW;
-    blitInfo.destination.h = dstH;
+    // Software fallback: blit indexed framebuffer to window surface
+    SDL_Surface *surface = SDL_GetWindowSurface(s_pWindow);
+    if (!surface) return;
+    if (SDL_MUSTLOCK(surface)) SDL_LockSurface(surface);
+    ConvertIndexedToRGBA(scrbuf, pal_addr, (uint8 *)surface->pixels, winw, winh);
+    if (SDL_MUSTLOCK(surface)) SDL_UnlockSurface(surface);
+    SDL_UpdateWindowSurface(s_pWindow);
   }
-  blitInfo.filter = SDL_GPU_FILTER_NEAREST;
-  blitInfo.load_op = SDL_GPU_LOADOP_CLEAR;
-  blitInfo.clear_color = (SDL_FColor){0.0f, 0.0f, 0.0f, 1.0f};
-
-  SDL_BlitGPUTexture(cmdBuf, &blitInfo);
-  debug_overlay_render(s_pDebugOverlay, cmdBuf, swapchainTex, swW, swH);
-  SDL_SubmitGPUCommandBuffer(cmdBuf);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -538,45 +560,54 @@ int InitSDL(char *whiplash_root, const char *midi_root)
     return 1;
   }
 
-  s_pGPUDevice = SDL_CreateGPUDevice(
-    SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_MSL | SDL_GPU_SHADERFORMAT_DXIL,
-    false, NULL);
-  if (!s_pGPUDevice) {
-    ErrorBoxExit("Couldn't create GPU device: %s", SDL_GetError());
-    return 1;
+  if (ROLLERGpuAvailable()) {
+    s_pGPUDevice = SDL_CreateGPUDevice(
+      SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_MSL | SDL_GPU_SHADERFORMAT_DXIL,
+      false, NULL);
+    if (s_pGPUDevice) {
+      if (!SDL_ClaimWindowForGPUDevice(s_pGPUDevice, s_pWindow)) {
+        SDL_Log("Couldn't claim window for GPU device: %s", SDL_GetError());
+        SDL_DestroyGPUDevice(s_pGPUDevice);
+        s_pGPUDevice = NULL;
+      }
+    } else {
+      SDL_Log("Couldn't create GPU device: %s. Falling back to software rendering.", SDL_GetError());
+    }
   }
 
-  if (!SDL_ClaimWindowForGPUDevice(s_pGPUDevice, s_pWindow)) {
-    ErrorBoxExit("Couldn't claim window for GPU device: %s", SDL_GetError());
-    return 1;
+  if (s_pGPUDevice) {
+    s_pMenuRenderer = menu_render_create(s_pGPUDevice, s_pWindow);
+    s_pDebugOverlay = debug_overlay_create(s_pGPUDevice, s_pWindow);
+  } else {
+    s_pMenuRenderer = menu_render_create(NULL, s_pWindow);
+    s_pWindowSurface = SDL_GetWindowSurface(s_pWindow);
   }
-
-  s_pMenuRenderer = menu_render_create(s_pGPUDevice, s_pWindow);
-  s_pDebugOverlay = debug_overlay_create(s_pGPUDevice, s_pWindow);
 
   // GPU texture for game framebuffer presentation
-  SDL_GPUTextureCreateInfo texInfo = {0};
-  texInfo.type = SDL_GPU_TEXTURETYPE_2D;
-  texInfo.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
-  texInfo.width = 640;
-  texInfo.height = 400;
-  texInfo.layer_count_or_depth = 1;
-  texInfo.num_levels = 1;
-  texInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-  s_pGameTexture = SDL_CreateGPUTexture(s_pGPUDevice, &texInfo);
-  if (!s_pGameTexture) {
-    ErrorBoxExit("Couldn't create GPU texture: %s", SDL_GetError());
-    return 1;
-  }
+  if (s_pGPUDevice) {
+    SDL_GPUTextureCreateInfo texInfo = {0};
+    texInfo.type = SDL_GPU_TEXTURETYPE_2D;
+    texInfo.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+    texInfo.width = 640;
+    texInfo.height = 400;
+    texInfo.layer_count_or_depth = 1;
+    texInfo.num_levels = 1;
+    texInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
+    s_pGameTexture = SDL_CreateGPUTexture(s_pGPUDevice, &texInfo);
+    if (!s_pGameTexture) {
+      ErrorBoxExit("Couldn't create GPU texture: %s", SDL_GetError());
+      return 1;
+    }
 
-  // Transfer buffer for CPU->GPU framebuffer upload
-  SDL_GPUTransferBufferCreateInfo tbInfo = {0};
-  tbInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-  tbInfo.size = 640 * 400 * 4;
-  s_pTransferBuffer = SDL_CreateGPUTransferBuffer(s_pGPUDevice, &tbInfo);
-  if (!s_pTransferBuffer) {
-    ErrorBoxExit("Couldn't create GPU transfer buffer: %s", SDL_GetError());
-    return 1;
+    // Transfer buffer for CPU->GPU framebuffer upload
+    SDL_GPUTransferBufferCreateInfo tbInfo = {0};
+    tbInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+    tbInfo.size = 640 * 400 * 4;
+    s_pTransferBuffer = SDL_CreateGPUTransferBuffer(s_pGPUDevice, &tbInfo);
+    if (!s_pTransferBuffer) {
+      ErrorBoxExit("Couldn't create GPU transfer buffer: %s", SDL_GetError());
+      return 1;
+    }
   }
 
   SDL_Surface *pIcon = IMG_Load("roller.ico");
@@ -727,10 +758,12 @@ void ShutdownSDL()
     debug_overlay_destroy(s_pDebugOverlay);
     s_pDebugOverlay = NULL;
     menu_render_destroy(s_pMenuRenderer);
-    SDL_ReleaseGPUTexture(s_pGPUDevice, s_pGameTexture);
-    SDL_ReleaseGPUTransferBuffer(s_pGPUDevice, s_pTransferBuffer);
-    SDL_ReleaseWindowFromGPUDevice(s_pGPUDevice, s_pWindow);
-    SDL_DestroyGPUDevice(s_pGPUDevice);
+    if (s_pGPUDevice) {
+      SDL_ReleaseGPUTexture(s_pGPUDevice, s_pGameTexture);
+      SDL_ReleaseGPUTransferBuffer(s_pGPUDevice, s_pTransferBuffer);
+      SDL_ReleaseWindowFromGPUDevice(s_pGPUDevice, s_pWindow);
+      SDL_DestroyGPUDevice(s_pGPUDevice);
+    }
     SDL_DestroyWindow(s_pWindow);
   }
 
