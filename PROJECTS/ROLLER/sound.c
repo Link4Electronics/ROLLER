@@ -888,18 +888,21 @@ bool setpal(const char *szFilename)
     return false;
   }
 
-  // Assign palette globals
-  pal_addr = pFileData;
-  pal_selector = pFileData; // For compatibility
-
   uint8 *pRaw = (uint8 *)pFileData;
 
-  // Copy RGB triplets into the structured palette array
+  // Copy RGB triplets into the structured palette array,
+  // then point pal_addr to it so struct field order matches access.
+  // tColor layout: byR @0, byB @1, byG @2
+  // File layout:  R @0,  G @1,  B @2
   for (int i = 0; i < 256; ++i) {
     palette[i].byR = pRaw[i * 3 + 0];
     palette[i].byG = pRaw[i * 3 + 1];
     palette[i].byB = pRaw[i * 3 + 2];
   }
+
+  pal_addr = (tColor *)palette;
+  pal_selector = (void *)-1; // pal_addr points to global array, not malloc'd
+  free(pFileData);
 
   // If cheat mode flag is set, apply grayscale filter
   if (cheat_mode & CHEAT_MODE_GRAYSCALE) {
@@ -3769,6 +3772,10 @@ int getcompactedfilelength(const char *szFile)
   if (!pFile) ErrorBoxExit("Could not open file %s", szFile);
   fread(&iLength, 1u, 4u, pFile);
   fclose(pFile);
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+  // Compacted file header stores uncompressed size as 4-byte LE integer
+  iLength = __builtin_bswap32(iLength);
+#endif
   return iLength;
 }
 
@@ -3901,11 +3908,13 @@ void loadcompactedfilepart(uint8 *pDest, uint32 uiDestLength)
           if (c & 16) {
           // Bit 4 : 1 : Word difference
             c = (c & 15) + 2;			// bits 3-0 = len 2->17
-            { short tmp_s; memcpy(&tmp_s, unmangledst - 2, 2); u = tmp_s; }	// start word
-            { short tmp_s; memcpy(&tmp_s, unmangledst - 4, 2); v = u - tmp_s; }	// dif
+            // Read source bytes as LE shorts for endian-independent arithmetic
+            { uint8 *bp = unmangledst - 2; u = (int)(int16_t)(bp[0] | (bp[1] << 8)); }
+            { uint8 *bp = unmangledst - 4; v = u - (int)(int16_t)(bp[0] | (bp[1] << 8)); }
             while (c--) {
               u += v;
-              { short tmp_s = (short)u; memcpy(unmangledst, &tmp_s, 2); }
+              unmangledst[0] = (uint8)(u & 0xFF);
+              unmangledst[1] = (uint8)((u >> 8) & 0xFF);
               unmangledst += 2;
             }
           } else {
