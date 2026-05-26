@@ -79,6 +79,7 @@ int actualtrack;            //00176AB8
 uint8 *start_f;             //00176ABC
 int TrackFlags;             //00176AC0
 int meof;                   //00176AC4
+const uint8 *g_pTrackBufEnd = NULL; // ROLLER: safety sentinel for memgets
 tSubdivide Subdivide[MAX_TRACK_CHUNKS];  //00176AC8
 
 //-------------------------------------------------------------------------------------------------
@@ -276,6 +277,7 @@ void loadtrack(int iTrackIdx, int iPreviewMode)
       fread(pData, iFileLength, 1u, pFile_2);
       iCompactedFlag = 0;
       pData[iFileLength] = 26;
+      g_pTrackBufEnd = pData + iFileLength + 1;
     } else {
       if (bMinimalMode)
         pTrackBuffer = scrbuf;
@@ -301,11 +303,13 @@ void loadtrack(int iTrackIdx, int iPreviewMode)
         fread(pData, iFileLength, 1u, pFile_2);
         iCompactedFlag = 0;
         pData[iFileLength] = 26;
+        g_pTrackBufEnd = pData + iFileLength + 1;
       } else {
         pFile_1 = ROLLERfopen(names[iTrackIdx_1], "r");
         pData[iCompactedFileLength] = 26;
         pFile_2 = pFile_1;
         iCompactedFlag = -1;
+        g_pTrackBufEnd = pData + iCompactedFileLength + 1;
         // Diagnostic: check if first bytes look like text
         if (iCompactedFileLength > 20) {
           int iPrintable = 0;
@@ -1369,6 +1373,16 @@ uint8 *memgets(uint8 *pDst, uint8 **ppSrc, int maxLen)
     iLen = 0;
     do {
       if (iLen >= maxLen - 1) goto done;
+      if (g_pTrackBufEnd && *ppSrc >= g_pTrackBufEnd) {
+        byte = 0x1A;
+        iEof = -1;
+        *pDst2 = byte;
+        ppSrcNext = *ppSrc + 1;
+        *ppSrc = ppSrcNext;
+        ++pDst2;
+        ++iLen;
+        goto done;
+      }
       byte = **ppSrc;
       *pDst2 = byte;
       if (byte == 0x1A)
