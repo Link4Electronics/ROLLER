@@ -5793,6 +5793,27 @@ uint8 *load_picture(const char *szFile)
   uiFileLength = getcompactedfilelength(szFile);
   pBuf = (uint8 *)getbuffer(uiFileLength);
   loadcompactedfile(szFile, pBuf);
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+  // Byte-swap tBlockHeader entries from LE file to native BE.
+  // First entry's iDataOffset (bytes 8-11 as LE int32) = start of pixel data = num_entries * sizeof(tBlockHeader).
+  if (pBuf && uiFileLength >= sizeof(tBlockHeader)) {
+    uint32 raw_offset;
+    memcpy(&raw_offset, pBuf + 8, sizeof(raw_offset));
+    uint32 actual_offset = __builtin_bswap32(raw_offset);
+    int iHeaderCount = actual_offset / (int)sizeof(tBlockHeader);
+    if (iHeaderCount > 0 && iHeaderCount * (int)sizeof(tBlockHeader) <= (int)uiFileLength) {
+      for (int i = 0; i < iHeaderCount; i++) {
+        uint8 *pEntry = pBuf + i * (int)sizeof(tBlockHeader);
+        uint32 fields[3];
+        memcpy(fields, pEntry, sizeof(fields));
+        fields[0] = __builtin_bswap32(fields[0]);
+        fields[1] = __builtin_bswap32(fields[1]);
+        fields[2] = __builtin_bswap32(fields[2]);
+        memcpy(pEntry, fields, sizeof(fields));
+      }
+    }
+  }
+#endif
   return pBuf;
 }
 
