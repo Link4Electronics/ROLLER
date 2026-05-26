@@ -1401,7 +1401,8 @@ int ROLLERrename(const char *szOldName, const char *szNewName)
 
 uint32 ROLLERAddTimer(Uint32 uiFrequencyHz, SDL_NSTimerCallback callback, void *userdata)
 {
-  SDL_LockMutex(g_pTimerMutex);
+  if (ROLLERMutexIsValid(g_pTimerMutex))
+    SDL_LockMutex(g_pTimerMutex);
   uint32 uiHandle = SDL_AddTimerNS(HZ_TO_NS(uiFrequencyHz), callback, userdata);
 
   //find empty timer slot
@@ -1415,7 +1416,8 @@ uint32 ROLLERAddTimer(Uint32 uiFrequencyHz, SDL_NSTimerCallback callback, void *
       break;
     }
   }
-  SDL_UnlockMutex(g_pTimerMutex);
+  if (ROLLERMutexIsValid(g_pTimerMutex))
+    SDL_UnlockMutex(g_pTimerMutex);
 
   if (!bFoundSlot) {
     //too many timers!
@@ -1432,14 +1434,16 @@ void ROLLERRemoveTimer(uint32 uiHandle)
 {
   SDL_RemoveTimer(uiHandle);
 
-  SDL_LockMutex(g_pTimerMutex);
+  if (ROLLERMutexIsValid(g_pTimerMutex))
+    SDL_LockMutex(g_pTimerMutex);
   //clear timer data
   for (int i = 0; i < MAX_TIMERS; ++i) {
     if (timerDataAy[i].uiHandle == uiHandle) {
       memset(&timerDataAy[i], 0, sizeof(tTimerData));
     }
   }
-  SDL_UnlockMutex(g_pTimerMutex);
+  if (ROLLERMutexIsValid(g_pTimerMutex))
+    SDL_UnlockMutex(g_pTimerMutex);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1507,8 +1511,21 @@ tTimerData *GetTimerData(SDL_TimerID timerID)
 
 //-------------------------------------------------------------------------------------------------
 
+static bool ROLLERMutexIsValid(SDL_Mutex *pMutex)
+{
+  // A valid mutex pointer on ppc64 should be in the heap or mmap region.
+  // Under ~0x10000 or above ~0x800000000000 is definitely invalid.
+  uintptr_t uAddr = (uintptr_t)pMutex;
+  return uAddr > 0x10000 && uAddr < 0x800000000000ULL;
+}
+
 static bool ROLLERGetTimerInterval(SDL_TimerID timerID, uint64 *pUllInterval)
 {
+  if (!ROLLERMutexIsValid(g_pTimerMutex)) {
+    fprintf(stderr, "ROLLER: g_pTimerMutex corrupted (%p), skipping timer\n",
+            (void*)g_pTimerMutex);
+    return false;
+  }
   SDL_LockMutex(g_pTimerMutex);
   tTimerData *pTimerData = GetTimerData(timerID);
   if (!pTimerData) {
