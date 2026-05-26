@@ -3495,6 +3495,9 @@ void snapshot_render_championship_over(void)
 
 //-------------------------------------------------------------------------------------------------
 //0005B6A0
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+void swap_block_headers(uint8 *, uint32);
+#endif
 uint8 *try_load_picture(const char *szFile)
 {
   uint8 *pBuf2; // ebx
@@ -3509,8 +3512,13 @@ uint8 *try_load_picture(const char *szFile)
     iLength = getcompactedfilelength(szFile);
     pBuf = (uint8 *)trybuffer(iLength);
     pBuf2 = pBuf;
-    if (pBuf)
+    if (pBuf) {
       loadcompactedfile(szFile, pBuf);
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+      // Same tBlockHeader byte-swap as load_picture
+      swap_block_headers(pBuf, iLength);
+#endif
+    }
   }
   return pBuf2;
 }
@@ -5774,6 +5782,58 @@ void display_block(uint8 *pDest, tBlockHeader *pSrc, int iBlockIdx, int iX, int 
   }
 }
 
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+void swap_block_headers(uint8 *pBuf, uint32 uiFileLength)
+{
+  if (!pBuf || uiFileLength < (uint32)sizeof(tBlockHeader)) return;
+  uint32 raw_offset;
+  memcpy(&raw_offset, pBuf + 8, sizeof(raw_offset));
+  uint32 actual_offset = __builtin_bswap32(raw_offset);
+  uint32 iHeaderCount = actual_offset / (uint32)sizeof(tBlockHeader);
+  uint32 iHeaderBytes = iHeaderCount * (uint32)sizeof(tBlockHeader);
+  if (iHeaderBytes != actual_offset) iHeaderCount = 0;
+  if (iHeaderCount < 1 || iHeaderCount > 256) iHeaderCount = 0;
+  if (iHeaderBytes > uiFileLength) iHeaderCount = 0;
+  if (iHeaderCount == 0) {
+    iHeaderCount = uiFileLength / (uint32)sizeof(tBlockHeader);
+    if (iHeaderCount > 256) iHeaderCount = 256;
+  }
+  for (uint32 i = 0; i < iHeaderCount; i++) {
+    uint32 iEntryOff = i * (uint32)sizeof(tBlockHeader);
+    if (iEntryOff + (uint32)sizeof(tBlockHeader) > uiFileLength) break;
+    uint32 fields[3];
+    memcpy(fields, pBuf + iEntryOff, sizeof(fields));
+    fields[0] = __builtin_bswap32(fields[0]);
+    fields[1] = __builtin_bswap32(fields[1]);
+    fields[2] = __builtin_bswap32(fields[2]);
+    if (fields[0] == 0 || fields[0] > 256 ||
+        fields[1] == 0 || fields[1] > 256 ||
+        fields[2] < iEntryOff + (uint32)sizeof(tBlockHeader) ||
+        fields[2] + (uint32)fields[0] * (uint32)fields[1] > uiFileLength) {
+      iHeaderCount = i; break;
+    }
+    memcpy(pBuf + iEntryOff, fields, sizeof(fields));
+  }
+  while (iHeaderCount < 256) {
+    uint32 iEntryOff = iHeaderCount * (uint32)sizeof(tBlockHeader);
+    if (iEntryOff + (uint32)sizeof(tBlockHeader) > uiFileLength) break;
+    uint32 fields[3];
+    memcpy(fields, pBuf + iEntryOff, sizeof(fields));
+    fields[0] = __builtin_bswap32(fields[0]);
+    fields[1] = __builtin_bswap32(fields[1]);
+    fields[2] = __builtin_bswap32(fields[2]);
+    if (fields[0] == 0 || fields[0] > 256 ||
+        fields[1] == 0 || fields[1] > 256 ||
+        fields[2] < iEntryOff + (uint32)sizeof(tBlockHeader) ||
+        fields[2] + (uint32)fields[0] * (uint32)fields[1] > uiFileLength) {
+      break;
+    }
+    memcpy(pBuf + iEntryOff, fields, sizeof(fields));
+    iHeaderCount++;
+  }
+}
+#endif
+
 //-------------------------------------------------------------------------------------------------
 //0005DD40
 uint8 *load_picture(const char *szFile)
@@ -5794,25 +5854,7 @@ uint8 *load_picture(const char *szFile)
   pBuf = (uint8 *)getbuffer(uiFileLength);
   loadcompactedfile(szFile, pBuf);
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-  // Byte-swap tBlockHeader entries from LE file to native BE.
-  // First entry's iDataOffset (bytes 8-11 as LE int32) = start of pixel data = num_entries * sizeof(tBlockHeader).
-  if (pBuf && uiFileLength >= (uint32)sizeof(tBlockHeader)) {
-    uint32 raw_offset;
-    memcpy(&raw_offset, pBuf + 8, sizeof(raw_offset));
-    uint32 actual_offset = __builtin_bswap32(raw_offset);
-    if (actual_offset >= (uint32)sizeof(tBlockHeader) && actual_offset <= uiFileLength) {
-      uint32 iHeaderCount = actual_offset / (uint32)sizeof(tBlockHeader);
-      for (uint32 i = 0; i < iHeaderCount; i++) {
-        uint8 *pEntry = pBuf + i * (uint32)sizeof(tBlockHeader);
-        uint32 fields[3];
-        memcpy(fields, pEntry, sizeof(fields));
-        fields[0] = __builtin_bswap32(fields[0]);
-        fields[1] = __builtin_bswap32(fields[1]);
-        fields[2] = __builtin_bswap32(fields[2]);
-        memcpy(pEntry, fields, sizeof(fields));
-      }
-    }
-  }
+  swap_block_headers(pBuf, uiFileLength);
 #endif
   return pBuf;
 }
