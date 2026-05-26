@@ -1025,9 +1025,11 @@ void read_texturemap(uint8 **ppTrackData)
   int iIndex; // edx
   char byChar; // bl
 
-  do
+  do {
     memgets(fp_buf, ppTrackData, sizeof(fp_buf));
-  while (fp_buf[0] != 84);
+    if (meof) break;
+  } while (fp_buf[0] != 84);
+  if (meof) return;
   pszBufPtr = fp_buf;
   do
     byCurrentChar = *++pszBufPtr;               // Scan forward in the line to find the ':' separator
@@ -1131,6 +1133,10 @@ void readstuntdata(uint8 **pTrackData)
       &iTimeFlat,
       &iRampSideLength,
       &iFlags);
+    if (meof) {
+      iGeometryIndex = -1;
+      break;
+    }
     if (iGeometryIndex != -1) {
       pDataItr = pStuntData + 1;
       *(pDataItr++ - 1) = iGeometryIndex;
@@ -1378,8 +1384,7 @@ uint8 *memgets(uint8 *pDst, uint8 **ppSrc, int maxLen)
         byte = 0x1A;
         iEof = -1;
         *pDst2 = byte;
-        ppSrcNext = *ppSrc + 1;
-        *ppSrc = ppSrcNext;
+        // don't advance ppSrc — stay at end so subsequent calls also see EOF
         ++pDst2;
         ++iLen;
         goto done;
