@@ -191,6 +191,36 @@ static int SelectIntroFile(int iAvoidIntro)
   return iIntroFile;
 }
 
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+static void swap_replay_header_ints(void)
+{
+  for (int i = 0; i < 16; i++)
+    non_competitors[i] = (int)__builtin_bswap32((uint32)non_competitors[i]);
+  racers = (int)__builtin_bswap32((uint32)racers);
+}
+static void swap_replay_camera(tReplayCamera *pCam, int n)
+{
+  for (int i = 0; i < n; i++)
+    pCam[i].iFrame = (int)__builtin_bswap32((uint32)pCam[i].iFrame);
+}
+static void swap_replay_data(tReplayData *pData)
+{
+  pData->iPackedPosX   = (int)__builtin_bswap32((uint32)pData->iPackedPosX);
+  pData->iPackedPosY   = (int)__builtin_bswap32((uint32)pData->iPackedPosY);
+  pData->iPackedPosZ   = (int)__builtin_bswap32((uint32)pData->iPackedPosZ);
+  pData->nCurrChunk    = (int16)__builtin_bswap16((uint16)pData->nCurrChunk);
+  pData->nRollPacked   = (int16)__builtin_bswap16((uint16)pData->nRollPacked);
+  pData->nPitchPacked  = (int16)__builtin_bswap16((uint16)pData->nPitchPacked);
+  pData->nDesiredYaw   = (int16)__builtin_bswap16((uint16)pData->nDesiredYaw);
+  pData->nActualYaw    = (int16)__builtin_bswap16((uint16)pData->nActualYaw);
+  pData->nSpeedAndStatus = (int16)__builtin_bswap16((uint16)pData->nSpeedAndStatus);
+}
+#else
+static void swap_replay_header_ints(void) {}
+static void swap_replay_camera(tReplayCamera *pCam, int n) { (void)pCam; (void)n; }
+static void swap_replay_data(tReplayData *pData) { (void)pData; }
+#endif
+
 //-------------------------------------------------------------------------------------------------
 //00063DB0
 void setreplaytrack()
@@ -286,6 +316,7 @@ void setreplaytrack()
         fread(pReplayNonCompetitor, 4u, 1u, pFile);
       } while (iNonCompetitor != &non_competitors[16]);
       fread(&racers, 4u, 1u, pFile);            // Read racers data (4 bytes)
+      swap_replay_header_ints();
       iCarCounter = 0;
       if (numcars > 0) {
         iByteOffset = 0;
@@ -515,6 +546,7 @@ void startreplay()
         fread(buffer, 1u, 1u, replayfile);
         SelectedView[0] = buffer[0];
         fread(camera, 6u, 0x64u, replayfile);
+        swap_replay_camera(camera, 100);
         fread(buffer, 1u, 1u, replayfile);
         pNonCompetitorsRead = non_competitors;
         cuts = buffer[0];
@@ -523,6 +555,7 @@ void startreplay()
           fread(pCurrentNonCompetitorRead, 4u, 1u, replayfile);
         } while (pNonCompetitorsRead != &non_competitors[16]);
         fread(&racers, 4u, 1u, replayfile);
+        swap_replay_header_ints();
         iDriverIndex = 0;
         if (numcars > 0) {
           iNonCompetitorIndex = 0;
@@ -568,6 +601,7 @@ void startreplay()
         if (numcars > 0) {
           do {
             fread(&replayData, 0x1Eu, 1u, replayfile);// Read initial replay frame data (30 bytes per car)
+            swap_replay_data(&replayData);
             ++iReplayDataIndex;
             cReplayDataByte = GET_HIBYTE(replayData.iPackedPosX);
             iNumCarsLocal = numcars;
@@ -1033,6 +1067,7 @@ void DoReplayData()
             do {
               if (!non_competitors[uiCarOffset / 4]) {
                 fread(&replayData, 0x1Eu, 1u, replayfile);
+                swap_replay_data(&replayData);
 
                 // Unpack X position: extract lower 24 bits and convert to float
                 pReplayCar->pos.fX = (float)SIGN_EXTEND_24(replayData.iPackedPosX);
@@ -1321,8 +1356,13 @@ void DoReplayData()
           ppRampReplay = ramp;
           for (j = 0; j < 8; ++j) {
             fread(&pRampData_1, 2u, 1u, replayfile);
-            if (j < totalramps && *ppRampReplay)
-              (*ppRampReplay)->iTickStartIdx = (uint16)(uintptr_t)pRampData_1;
+            if (j < totalramps && *ppRampReplay) {
+              uint16 uiRampVal = (uint16)(uintptr_t)pRampData_1;
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+              uiRampVal = (uint16)__builtin_bswap16(uiRampVal);
+#endif
+              (*ppRampReplay)->iTickStartIdx = uiRampVal;
+            }
             ++ppRampReplay;
           }
 

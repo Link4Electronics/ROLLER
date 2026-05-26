@@ -34,7 +34,7 @@ extern int font6_offsets[88];
 extern char font6_ascii[256];
 extern char ascii_conv3[256];
 extern char *keyname[140];
-extern int userkey[14];
+extern uint8 userkey[14];
 extern uint8 key_buffer[];
 extern int new_zoom[2];
 extern char config_buffer[8192];

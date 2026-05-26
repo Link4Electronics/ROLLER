@@ -277,7 +277,7 @@ int zoom_ascii_variable_2 = 0; //000A3AF0 no symbols for these?
 int zoom_ascii_variable_3 = 0; //000A3AF4 no symbols for these?
 uint8 mapping[] =           //000A3AF8
 {
-  0x7F, 0x1B, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
+  0x00, 0x1B, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
   0x39, 0x30, 0x2D, 0x3D, 0x08, 0x09, 0x51, 0x57, 0x45, 0x52,
   0x54, 0x59, 0x55, 0x49, 0x4F, 0x50, 0x5B, 0x5D, 0x0D, 0x7F,
   0x41, 0x53, 0x44, 0x46, 0x47, 0x48, 0x4A, 0x4B, 0x4C, 0x3B,
@@ -506,7 +506,7 @@ char *keyname[140] = {      //000A3EDC
   szKeyJoy2Left,           /* 0x8A */
   szKeyJoy2Right           /* 0x8B */
 };
-int userkey[14] = {44u, 45u, 20u, 33u, 19u, 32u, 79u, 80u, 73u, 77u, 72u, 76u, 21u, 79u}; //000A410C
+uint8 userkey[14] = {44u, 45u, 20u, 33u, 19u, 32u, 79u, 80u, 73u, 77u, 72u, 76u, 21u, 79u}; //000A410C
 uint8 key_buffer[64];       //0013FB90
 int new_zoom[2];            //0013FBD0
 char config_buffer[8192];   //0013FBD8
@@ -1895,14 +1895,15 @@ int fatgetch()
     int iTestReadKey = read_key++;
     uint8 byKey = key_buffer[iTestReadKey];
     uint8 byMapping = mapping[byKey];
-    iResult = (char)byMapping;
 
     read_key &= 0x3Fu;
 
-    // Handle special keys
-    if (iResult < 0) {
-      iTwoParter = -iResult;                    // Convert to positive value
+    // Handle special keys (encoded as 0x80-0xFF in uint8, i.e. negative if signed)
+    if (byMapping >= 0x80u) {
+      iTwoParter = 256 - byMapping;             // Reconstruct extended key code
       iResult = 0;                              // Return 0 for this call, special key value will be returned next call
+    } else {
+      iResult = byMapping;
     }
   }
   twoparter = iTwoParter;                       // Store special key for next call
@@ -3909,20 +3910,20 @@ void load_fatal_config()
       getconfigvalue(pData2, "Names", &names_on, 0, 2);
 
       // Read keyboard mappings
-      getconfigvalueuc(pData2, "P1left",      (uint8*)&userkey[USERKEY_P1LEFT], 0, 139);
-      getconfigvalueuc(pData2, "P1right",     (uint8*)&userkey[USERKEY_P1RIGHT], 0, 139);
-      getconfigvalueuc(pData2, "P1up",        (uint8*)&userkey[USERKEY_P1UP], 0, 139);
-      getconfigvalueuc(pData2, "P1down",      (uint8*)&userkey[USERKEY_P1DOWN], 0, 139);
-      getconfigvalueuc(pData2, "P1upgear",    (uint8*)&userkey[USERKEY_P1UPGEAR], 0, 139);
-      getconfigvalueuc(pData2, "P1downgear",  (uint8*)&userkey[USERKEY_P1DOWNGEAR], 0, 139);
-      getconfigvalueuc(pData2, "P1cheat",     (uint8*)&userkey[USERKEY_P1CHEAT], 0, 139);
-      getconfigvalueuc(pData2, "P2left",      (uint8*)&userkey[USERKEY_P2LEFT], 0, 139);
-      getconfigvalueuc(pData2, "P2right",     (uint8*)&userkey[USERKEY_P2RIGHT], 0, 139);
-      getconfigvalueuc(pData2, "P2up",        (uint8*)&userkey[USERKEY_P2UP], 0, 139);
-      getconfigvalueuc(pData2, "P2down",      (uint8*)&userkey[USERKEY_P2DOWN], 0, 139);
-      getconfigvalueuc(pData2, "P2upgear",    (uint8*)&userkey[USERKEY_P2UPGEAR], 0, 139);
-      getconfigvalueuc(pData2, "P2downgear",  (uint8*)&userkey[USERKEY_P2DOWNGEAR], 0, 139);
-      getconfigvalueuc(pData2, "P2cheat",     (uint8*)&userkey[USERKEY_P2CHEAT], 0, 139);
+      getconfigvalueuc(pData2, "P1left",      &userkey[USERKEY_P1LEFT], 0, 139);
+      getconfigvalueuc(pData2, "P1right",     &userkey[USERKEY_P1RIGHT], 0, 139);
+      getconfigvalueuc(pData2, "P1up",        &userkey[USERKEY_P1UP], 0, 139);
+      getconfigvalueuc(pData2, "P1down",      &userkey[USERKEY_P1DOWN], 0, 139);
+      getconfigvalueuc(pData2, "P1upgear",    &userkey[USERKEY_P1UPGEAR], 0, 139);
+      getconfigvalueuc(pData2, "P1downgear",  &userkey[USERKEY_P1DOWNGEAR], 0, 139);
+      getconfigvalueuc(pData2, "P1cheat",     &userkey[USERKEY_P1CHEAT], 0, 139);
+      getconfigvalueuc(pData2, "P2left",      &userkey[USERKEY_P2LEFT], 0, 139);
+      getconfigvalueuc(pData2, "P2right",     &userkey[USERKEY_P2RIGHT], 0, 139);
+      getconfigvalueuc(pData2, "P2up",        &userkey[USERKEY_P2UP], 0, 139);
+      getconfigvalueuc(pData2, "P2down",      &userkey[USERKEY_P2DOWN], 0, 139);
+      getconfigvalueuc(pData2, "P2upgear",    &userkey[USERKEY_P2UPGEAR], 0, 139);
+      getconfigvalueuc(pData2, "P2downgear",  &userkey[USERKEY_P2DOWNGEAR], 0, 139);
+      getconfigvalueuc(pData2, "P2cheat",     &userkey[USERKEY_P2CHEAT], 0, 139);
 
       // Read joystick config
       getconfigvalue(pData2, "Joy1X", &iTemp, 0, 1);
