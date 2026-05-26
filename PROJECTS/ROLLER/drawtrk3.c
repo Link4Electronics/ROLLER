@@ -320,6 +320,8 @@ int CalcVisibleTrack(int iCarIdx, unsigned int uiViewMode)
   TrackSize = -1;                               // number of track chunks to render
   iExtraViewStart = -1;                         // start of extra view range (for tunnels?)
   iCurrChunk = Car[iCarIdx].nCurrChunk;         // current track chunk the car is on
+  if (TRAK_LEN > 0 && iCurrChunk >= 0)
+    iCurrChunk %= TRAK_LEN;
   iHasExtraView = 0;
 
   // Set starting chunk idx based on whether the car is on track
@@ -327,6 +329,8 @@ int CalcVisibleTrack(int iCarIdx, unsigned int uiViewMode)
     iChunkIdx = Car[iCarIdx].iLastValidChunk;   // use last valid chunk if off-track
   else
     iChunkIdx = Car[iCarIdx].nCurrChunk;
+  if (TRAK_LEN > 0 && iChunkIdx >= 0)
+    iChunkIdx %= TRAK_LEN;
   alltrackflag = 0;                             // flag for rendering entire track
 
   // Set view params based on view mode
