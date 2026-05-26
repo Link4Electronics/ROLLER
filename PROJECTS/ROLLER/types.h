@@ -13,6 +13,10 @@
 #define IS_MACOS
 #endif
 
+#if defined(__powerpc64__) || defined(__ppc64__) || defined(__PPC64__) || defined(_ARCH_PPC64)
+#define IS_PPC64
+#endif
+
 //-------------------------------------------------------------------------------------------------
 
 #define MAX_TIMERS 16

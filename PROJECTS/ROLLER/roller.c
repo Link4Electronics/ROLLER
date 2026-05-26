@@ -78,10 +78,20 @@ static int s_iGPUPresentSkipFrames = 0;
 static int ROLLERGpuAvailable(void) {
     static int available = -1;
     if (available < 0) {
+#ifdef IS_PPC64
+        // GPU pipeline creation (Vulkan/lavapipe) crashes on ppc64; disable by default.
+        const char *env = getenv("ROLLER_ENABLE_GPU");
+        available = (env && strcmp(env, "1") == 0) ? 1 : 0;
+        if (available)
+            SDL_Log("ROLLER: GPU enabled via ROLLER_ENABLE_GPU env var");
+        else
+            SDL_Log("ROLLER: GPU disabled on ppc64 (set ROLLER_ENABLE_GPU=1 to override)");
+#else
         const char *env = getenv("ROLLER_DISABLE_GPU");
         available = (!env || strcmp(env, "1") != 0) ? 1 : 0;
         if (!available)
             SDL_Log("ROLLER: GPU disabled via ROLLER_DISABLE_GPU env var");
+#endif
     }
     return available;
 }
