@@ -306,6 +306,18 @@ void loadtrack(int iTrackIdx, int iPreviewMode)
         pData[iCompactedFileLength] = 26;
         pFile_2 = pFile_1;
         iCompactedFlag = -1;
+        // Diagnostic: check if first bytes look like text
+        if (iCompactedFileLength > 20) {
+          int iPrintable = 0;
+          for (int i = 0; i < 20; ++i) {
+            if (pData[i] >= 32 && pData[i] < 127) ++iPrintable;
+          }
+          fprintf(stderr, "TRACK %d: decompressed %d bytes, first 20 printable=%d, hex: ",
+                  iTrackIdx_1, iDecompressedSize, iPrintable);
+          for (int i = 0; i < 40 && i < iCompactedFileLength; ++i)
+            fprintf(stderr, "%02x", pData[i]);
+          fprintf(stderr, "\n");
+        }
       }
     }
   }
