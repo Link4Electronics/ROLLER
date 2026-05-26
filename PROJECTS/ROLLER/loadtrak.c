@@ -1237,6 +1237,7 @@ void ReadAnimData(FILE *pFile, uint8 **ppFileData)
   if (pFile) {
     do {
       readline2(ppFileData, "ss", &iSignType, &iSignTex);
+      if (meof) break;
       if ((iSignType & 0x8000u) == 0) {
         advert_list[(int16)iSignType] = iSignTex;
       } else if ((int16)iSignType < -1) {
