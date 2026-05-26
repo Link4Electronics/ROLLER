@@ -437,32 +437,38 @@ void UpdateSDLWindow()
     debug_overlay_render(s_pDebugOverlay, cmdBuf, swapchainTex, swW, swH);
     SDL_SubmitGPUCommandBuffer(cmdBuf);
   } else {
-    // Software fallback: convert indexed framebuffer and blit to window surface
+    // Software fallback: convert indexed framebuffer directly to window surface
     SDL_Surface *surface = SDL_GetWindowSurface(s_pWindow);
     if (!surface) {
         SDL_Log("UpdateSDLWindow: SDL_GetWindowSurface failed: %s", SDL_GetError());
         return;
     }
-    if (!s_pWindowSurface ||
-        s_pWindowSurface->w != winw || s_pWindowSurface->h != winh) {
-        if (s_pWindowSurface) SDL_DestroySurface(s_pWindowSurface);
-        s_pWindowSurface = SDL_CreateSurface(winw, winh,
-            SDL_PIXELFORMAT_RGBA8888);
-        if (!s_pWindowSurface) {
-            SDL_Log("UpdateSDLWindow: SDL_CreateSurface failed: %s", SDL_GetError());
-            return;
+    if (SDL_MUSTLOCK(surface)) SDL_LockSurface(surface);
+    switch (surface->format) {
+        case SDL_PIXELFORMAT_RGBA8888:
+        case SDL_PIXELFORMAT_RGBX8888:
+            ConvertIndexedToRGBA(scrbuf, pal_addr,
+                (uint8 *)surface->pixels, winw, winh);
+            break;
+        case SDL_PIXELFORMAT_BGRA8888:
+        case SDL_PIXELFORMAT_BGRX8888: {
+            for (int i = 0; i < winw * winh; ++i) {
+                const tColor *c = &pal_addr[scrbuf[i]];
+                uint8 *p = (uint8 *)surface->pixels + i * 4;
+                p[0] = (c->byB * 255) / 63;
+                p[1] = (c->byG * 255) / 63;
+                p[2] = (c->byR * 255) / 63;
+                p[3] = 255;
+            }
+            break;
         }
+        default:
+            SDL_Log("UpdateSDLWindow: unsupported pixel format 0x%x",
+                    surface->format);
+            break;
     }
-    SDL_LockSurface(s_pWindowSurface);
-    ConvertIndexedToRGBA(scrbuf, pal_addr,
-        (uint8 *)s_pWindowSurface->pixels, winw, winh);
-    SDL_UnlockSurface(s_pWindowSurface);
-    if (SDL_BlitSurface(s_pWindowSurface, NULL, surface, NULL) < 0) {
-        SDL_Log("UpdateSDLWindow: SDL_BlitSurface failed: %s", SDL_GetError());
-    }
-    if (SDL_UpdateWindowSurface(s_pWindow) < 0) {
-        SDL_Log("UpdateSDLWindow: SDL_UpdateWindowSurface failed: %s", SDL_GetError());
-    }
+    if (SDL_MUSTLOCK(surface)) SDL_UnlockSurface(surface);
+    SDL_UpdateWindowSurface(s_pWindow);
   }
 }
 

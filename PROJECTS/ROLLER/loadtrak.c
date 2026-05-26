@@ -283,11 +283,30 @@ void loadtrack(int iTrackIdx, int iPreviewMode)
         pTrackBuffer = (uint8 *)getbuffer(iCompactedFileLength + 1);
       pData = pTrackBuffer;
       pCurrDataPtr = pTrackBuffer;
-      loadcompactedfile(names[iTrackIdx_1], pTrackBuffer);
-      pFile_1 = ROLLERfopen(names[iTrackIdx_1], "r");
-      pData[iCompactedFileLength] = 26;
-      pFile_2 = pFile_1;
-      iCompactedFlag = -1;
+      int iDecompressedSize = loadcompactedfile(names[iTrackIdx_1], pTrackBuffer);
+      if (iDecompressedSize != iCompactedFileLength) {
+        fprintf(stderr, "WARNING: track %d decompression size mismatch (%d vs %d), trying raw read\n",
+                iTrackIdx_1, iDecompressedSize, iCompactedFileLength);
+        if (!bMinimalMode) {
+          fre((void **)&pTrackBuffer);
+        }
+        iFileLength = ROLLERfilelength(names[iTrackIdx_1]);
+        if (bMinimalMode)
+          pTrackBuffer_1 = scrbuf;
+        else
+          pTrackBuffer_1 = (uint8 *)getbuffer(iFileLength + 1);
+        pData = pTrackBuffer_1;
+        pCurrDataPtr = pTrackBuffer_1;
+        pFile_2 = ROLLERfopen(names[iTrackIdx_1], "rb");
+        fread(pData, iFileLength, 1u, pFile_2);
+        iCompactedFlag = 0;
+        pData[iFileLength] = 26;
+      } else {
+        pFile_1 = ROLLERfopen(names[iTrackIdx_1], "r");
+        pData[iCompactedFileLength] = 26;
+        pFile_2 = pFile_1;
+        iCompactedFlag = -1;
+      }
     }
   }
   meof = 0;

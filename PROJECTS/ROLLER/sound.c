@@ -3806,7 +3806,9 @@ int loadcompactedfile(const char *szFile, uint8 *pBuf)
 {
   initmangle(szFile);
   loadcompactedfilepart(pBuf, 1000000000u);
-  return fclose(unmanglefile);
+  int iDecompressedSize = (int)(unmangledst - pBuf);
+  fclose(unmanglefile);
+  return iDecompressedSize;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -3891,10 +3893,10 @@ void loadcompactedfilepart(uint8 *pDest, uint32 uiDestLength)
           if (c & 16) {
           // Bit 4 : 1 : Word sequence
             c = (c & 15) + 2;	// bits 3-0 = len 2->17
-            memcpy(&v, unmangledst - 2, 2);
-            v = (short)v;
+            { uint8 *bp = unmangledst - 2; v = (int)(int16_t)(bp[0] | (bp[1] << 8)); }
             while (c--) {
-              memcpy(unmangledst, &v, 2);
+              unmangledst[0] = (uint8)(v & 0xFF);
+              unmangledst[1] = (uint8)((v >> 8) & 0xFF);
               unmangledst += 2;
             }
           } else {
