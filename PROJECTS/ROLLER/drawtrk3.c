@@ -2229,14 +2229,24 @@ LABEL_393:
       pCurrentGroundScreen = NULL;
       pNextGroundScreen = NULL;
       if (pRenderCommand->nRenderPriority != 11 && pRenderCommand->nRenderPriority != 14 
-        && iSectionNum >= 0 && iSectionNum < MAX_TRACK_CHUNKS //index checks added by ROLLER
-        && iNextSectionIndex >= 0 && iNextSectionIndex < MAX_TRACK_CHUNKS) {
+        && iSectionNum >= 0 && iSectionNum < MAX_TRACK_CHUNKS) {
 
         iNextSectionIndex = NextSect[iSectionNum];
-        pScreenCoord_1 = &TrackScreenXYZ[iSectionNum];
-        pCurrentGroundScreen = &GroundScreenXYZ[iSectionNum];
-        pScreenCoord = &TrackScreenXYZ[iNextSectionIndex];
-        pNextGroundScreen = &GroundScreenXYZ[iNextSectionIndex];
+        if (iNextSectionIndex >= 0 && iNextSectionIndex < MAX_TRACK_CHUNKS) {
+          pScreenCoord_1 = &TrackScreenXYZ[iSectionNum];
+          pCurrentGroundScreen = &GroundScreenXYZ[iSectionNum];
+          pScreenCoord = &TrackScreenXYZ[iNextSectionIndex];
+          pNextGroundScreen = &GroundScreenXYZ[iNextSectionIndex];
+        }
+      }
+      if (pRenderCommand->nRenderPriority != 0xB
+          && pRenderCommand->nRenderPriority != 0xC
+          && pRenderCommand->nRenderPriority != 0xD
+          && pRenderCommand->nRenderPriority != 0xE
+          && (iSectionNum < 0 || iSectionNum >= MAX_TRACK_CHUNKS)) {
+        if (++iRenderObjectIndex >= iRenderQueueCount)
+          return;
+        continue;
       }
       switch (pRenderCommand->nRenderPriority) {
         case RENDER_QUEUE_3D_LEFT_WALL_LEGACY_PRIORITY:
