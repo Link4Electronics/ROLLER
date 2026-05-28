@@ -2611,7 +2611,7 @@ LABEL_393:
               pCarPose = &pose;
               pCarOptions = &options;
             }
-            if (CarsLeft < 7 && CarsLeft > -3 || winner_mode || replaytype == 2 || g_bForceMaxDraw)
+            if ((CarsLeft < 7 && CarsLeft > -3) || winner_mode || replaytype == 2 || g_bForceMaxDraw)
               game_render_draw_car(g_pGameRenderer, iCarRenderIdx, pCarPose, pCarOptions);
             --CarsLeft;
             if (names_on && (names_on == 1 || human_control[iCarRenderIdx]))

@@ -1343,7 +1343,7 @@ void frontend_config_update(void)
                       iKeyChar = iKeyInput - 32;
 
                     // Accept alphanumeric chars and space
-                    if ((iKeyChar == 32 || iKeyChar >= 65 && iKeyChar <= 90 || iKeyChar >= 48 && iKeyChar <= 57) && iFrontendConfigNameLength < 8) {
+                    if ((iKeyChar == 32 || (iKeyChar >= 65 && iKeyChar <= 90) || (iKeyChar >= 48 && iKeyChar <= 57)) && iFrontendConfigNameLength < 8) {
                       iFrontendConfigNameLength_2 = iFrontendConfigNameLength + 1;
                       szFrontendConfigNewNameBuf[iFrontendConfigNameLength] = iKeyChar;
                       iFrontendConfigNameLength = iFrontendConfigNameLength_2;
@@ -2025,7 +2025,7 @@ void frontend_config_update(void)
                       if (iFrontendConfigEditingName && iFrontendConfigNameLength < 13) {
                         if (iGameIndex >= 97 && iGameIndex <= 122)
                           iGameIndex -= 32;
-                        if (iGameIndex >= 65 && iGameIndex <= 90 || iGameIndex >= 48 && iGameIndex <= 57 || iGameIndex == 32 || iGameIndex == 46 || iGameIndex == 39) {
+                        if ((iGameIndex >= 65 && iGameIndex <= 90) || (iGameIndex >= 48 && iGameIndex <= 57) || iGameIndex == 32 || iGameIndex == 46 || iGameIndex == 39) {
                           iResultValue = 14 * (4 - iFrontendConfigNetworkState);
                           iCalculation = iFrontendConfigNameLength + 1;
                           network_messages[0][iFrontendConfigNameLength + iResultValue] = iGameIndex;

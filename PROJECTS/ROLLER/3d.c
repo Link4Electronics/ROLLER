@@ -1704,7 +1704,7 @@ void race_update(void)
   }
   bShiftKeyPressed = keys[WHIP_SCANCODE_LSHIFT] || keys[WHIP_SCANCODE_RSHIFT];
   shifting = bShiftKeyPressed;
-  if (bShiftKeyPressed && keys[WHIP_SCANCODE_F7] || keys[WHIP_SCANCODE_RETURN] && controlicon == 8)
+  if ((bShiftKeyPressed && keys[WHIP_SCANCODE_F7]) || (keys[WHIP_SCANCODE_RETURN] && controlicon == 8))
   {
     if (shifting && keys[WHIP_SCANCODE_F7])
       controlicon = 9;
@@ -1714,7 +1714,7 @@ void race_update(void)
   } else if (rewinding) {
     slowing = -1;
   }
-  if (shifting && keys[WHIP_SCANCODE_F8] || keys[WHIP_SCANCODE_RETURN] && controlicon == 10)
+  if ((shifting && keys[WHIP_SCANCODE_F8]) || (keys[WHIP_SCANCODE_RETURN] && controlicon == 10))
   {
     if (shifting && keys[WHIP_SCANCODE_F8])
       controlicon = 9;
@@ -3883,7 +3883,7 @@ void game_keys()
               case 0:
                 goto EXIT_PAUSE_MENU;
               case 1:
-                if (svga_possible && !no_mem || SVGA_ON) {
+                if ((svga_possible && !no_mem) || SVGA_ON) {
                   SVGA_ON = SVGA_ON == 0;
                   init_screen();
                   req_size = scr_size;
@@ -4024,7 +4024,7 @@ void game_keys()
             goto PROCESS_NEXT_KEY;
         }
       }
-    } while (replaytype != 2 || game_req == replaypanel && controlicon != 9 || !ricon[controlicon].pFunc);
+    } while (replaytype != 2 || (game_req == replaypanel && controlicon != 9) || !ricon[controlicon].pFunc);
     if ((unsigned int)controlicon < 0xE) {
     EXECUTE_REPLAY_FN:
       //TODO
@@ -4053,7 +4053,7 @@ void mesminus()
   do {
     if (iMesModeMinus < 0)
       iMesModeMinus = numcars;
-    if (--iMesModeMinus == team_mate || iMesModeMinus < 0 && players > 2 || human_control[iMesModeMinus] && iMesModeMinus != player1_car) {
+    if (--iMesModeMinus == team_mate || (iMesModeMinus < 0 && players > 2) || (human_control[iMesModeMinus] && iMesModeMinus != player1_car)) {
       iMesModeComp = -666;
       iNewMesMode = iMesModeMinus;
     }
@@ -4075,7 +4075,7 @@ void mesplus()
   do {
     if (++iMesModePlus >= numcars)
       iMesModePlus = -1;
-    if (iMesModePlus == team_mate || iMesModePlus < 0 && players > 2 || human_control[iMesModePlus] && iMesModePlus != player1_car) {
+    if (iMesModePlus == team_mate || (iMesModePlus < 0 && players > 2) || (human_control[iMesModePlus] && iMesModePlus != player1_car)) {
       iMesModeComp = -666;
       iNewMesMode = iMesModePlus;
     }

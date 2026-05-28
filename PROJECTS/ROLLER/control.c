@@ -141,7 +141,7 @@ void humancar(int iCarIdx)
     cheat_control = 0;
   else
     cheat_control = unFlags & 0x20;
-  if (finished_car[iCarIdx_1] || racers - 1 == finishers && Car[iCarIdx_1].byLap < NoOfLaps && competitors > 1)// Force brake mode if car finished or race is over for this player
+  if (finished_car[iCarIdx_1] || (racers - 1 == finishers && Car[iCarIdx_1].byLap < NoOfLaps && competitors > 1))// Force brake mode if car finished or race is over for this player
     iControlFlags = 2;
     //LOWORD(iControlFlags) = 2;
   //if (racers - 1 == finishers && Car[iCarIdx_1].byLap < NoOfLaps && (LODWORD(Car[iCarIdx_1].fFinalSpeed) & 0x7FFFFFFF) == 0 && competitors > 1)// Handle race finish condition: play finish sounds and mark player as finished
@@ -376,17 +376,17 @@ void humancar(int iCarIdx)
             iColorIndex = -12;                  // Modify track surface in 16-chunk range around car position
             do {
               if ((TrakColour[iCurrentChunk][1] & (SURFACE_FLAG_NO_SPAWN | SURFACE_FLAG_WALL_22)) == 0) {
-                iTrackColor1 = TrakColour[iCurrentChunk][1] & SURFACE_MASK_FLAGS ^ SURFACE_FLAG_APPLY_TEXTURE;
+                iTrackColor1 = (TrakColour[iCurrentChunk][1] & SURFACE_MASK_FLAGS) ^ SURFACE_FLAG_APPLY_TEXTURE;
                 TrakColour[iCurrentChunk][1] = (159 - (iColorIndex & 7)) | iTrackColor1;
                 localdata[iCurrentChunk].iCenterGrip = 12;
               }
               if ((TrakColour[iCurrentChunk][0] & (SURFACE_FLAG_NO_SPAWN | SURFACE_FLAG_WALL_22)) == 0) {
-                iTrackColor2 = TrakColour[iCurrentChunk][0] & SURFACE_MASK_FLAGS ^ SURFACE_FLAG_APPLY_TEXTURE;
+                iTrackColor2 = (TrakColour[iCurrentChunk][0] & SURFACE_MASK_FLAGS) ^ SURFACE_FLAG_APPLY_TEXTURE;
                 TrakColour[iCurrentChunk][0] = iTrackColor2 | (159 - (iColorIndex & 7));
                 localdata[iCurrentChunk].iLeftShoulderGrip = 12;
               }
               if ((TrakColour[iCurrentChunk][2] & (SURFACE_FLAG_NO_SPAWN | SURFACE_FLAG_WALL_22)) == 0) {
-                iTrackColor3 = TrakColour[iCurrentChunk][1] & SURFACE_MASK_FLAGS ^ SURFACE_FLAG_APPLY_TEXTURE;
+                iTrackColor3 = (TrakColour[iCurrentChunk][1] & SURFACE_MASK_FLAGS) ^ SURFACE_FLAG_APPLY_TEXTURE;
                 TrakColour[iCurrentChunk][2] = (159 - (iColorIndex & 7)) | iTrackColor3;
                 localdata[iCurrentChunk].iRightShoulderGrip = 12;
               }
@@ -658,7 +658,7 @@ static void control_ticks(int iMaxTicks, int iReturnIfNoTick)
               + *(int *)&Car[iCarIdx].pos.fX    // Float bit pattern as int
               + *(int *)&Car[iCarIdx].pos.fY
               + *(int *)&Car[iCarIdx].pos.fZ
-              + abs(Car[iCarIdx].byLives)
+              + Car[iCarIdx].byLives
               + abs((int)dHealth);
           }
           ++iCompetitorIdx;
@@ -909,10 +909,10 @@ static void control_ticks(int iMaxTicks, int iReturnIfNoTick)
       for (j = 0; j < numcars; ++j) {
         bySampleValue = newrepsample[j];
         if (bySampleValue) {
-          if (repsample[j] < 0 && bySampleValue > 0)
+          if ((int8)repsample[j] < 0 && bySampleValue > 0)
             sfxpend(bySampleValue - 1, j, (uint8)repvolume[j] << 8);
-          if (repsample[j] > 0 && newrepsample[j] < 0)
-            sfxpend(-newrepsample[j] - 1, j, (uint8)repvolume[j] << 8);
+          if (repsample[j] > 0 && (int8)newrepsample[j] < 0)
+            sfxpend(-(int8)newrepsample[j] - 1, j, (uint8)repvolume[j] << 8);
           repsample[j] = newrepsample[j];
         }
       }
@@ -965,7 +965,7 @@ static void control_ticks(int iMaxTicks, int iReturnIfNoTick)
         if (numcars > 0) {
           iRacingByteIdx = 0;
           do {
-            if (*((char *)&Car[0].byLives + iCarOffset) >= 0 && *(float *)((char *)&Car[0].fFinalSpeed + iCarOffset) > 0.0 && human_control[iRacingByteIdx / 4u])
+            if ((int8)*((char *)&Car[0].byLives + iCarOffset) >= 0 && *(float *)((char *)&Car[0].fFinalSpeed + iCarOffset) > 0.0 && human_control[iRacingByteIdx / 4u])
               racing = -1;
             iRacingByteIdx += 4;
             iCarOffset += sizeof(tCar);
@@ -1212,7 +1212,7 @@ void Accelerate(tCar *pCar)
     if (pCar->fRPMRatio >= 1.0)               // Check for redline condition (RPM ratio >= 1.0)
     {
       pCar->fWheelSpinFactor = 1.0;             // Redline: limit acceleration and apply engine damage for over-revving
-      if (pEngineData->iNumGears - 1 > iGearAyMax && iGearAyMax >= 0 || iGearAyMax == -2 && pCar->fFinalSpeed > 0.0)
+      if ((pEngineData->iNumGears - 1 > iGearAyMax && iGearAyMax >= 0) || (iGearAyMax == -2 && pCar->fFinalSpeed > 0.0))
         dodamage(pCar, 0.02f);
     } else {
       nCurrChunk = pCar->nCurrChunk;
@@ -1325,7 +1325,7 @@ void Accelerate(tCar *pCar)
       pCar->fSpeedOverflow = 0.0;
     if (iGearChanged)                         // Update speed overflow when gear changes occur
       pCar->fSpeedOverflow = pCar->fFinalSpeed - pCar->fBaseSpeed;
-    if ((char)pCar->byGearAyMax != -1)        // Update car pitch dynamics based on acceleration
+    if (pCar->byGearAyMax != 0xFF)        // Update car pitch dynamics based on acceleration
     {
       if (iCarDesignIdx == 9) {                                         // Special pitch handling for cheat mode (car design 9)
         if (cheat_control && pCar->fRPMRatio < 1.0) {
@@ -2172,10 +2172,10 @@ LABEL_45:
     }
   }
   iYaw3Value = pCar->nActualYaw;
-  if (iYaw3Value <= 4096 || iYaw3Value >= 12288 && pCar->fFinalSpeed > 0.0)
+  if (iYaw3Value <= 4096 || (iYaw3Value >= 12288 && pCar->fFinalSpeed > 0.0))
     pCar->nReverseWarnCooldown = 180;
   iAudioDriverIdx = pCar->iDriverIdx;
-  if ((player1_car == iAudioDriverIdx || player2_car == iAudioDriverIdx) && (nCurrentChunk >= 0 && pCar->nActualYaw < 4096 || pCar->nActualYaw > 12288)) {
+  if ((player1_car == iAudioDriverIdx || player2_car == iAudioDriverIdx) && ((nCurrentChunk >= 0 && pCar->nActualYaw < 4096) || pCar->nActualYaw > 12288)) {
     //nCurrentChunk check and iAudioSample init added by ROLLER
     iAudioSample = 0;
     if (nCurrentChunk >= 0 && (double)samplespeed[nCurrentChunk] <= pCar->fFinalSpeed) {
@@ -2598,7 +2598,7 @@ LABEL_171:
     fBankingForceX = -fTrackPointY * tsin[iCurrentYaw] + fZ * tcos[iCurrentYaw];
     fRPMRatio = pCar->fRPMRatio;                // Physics calculations - banking effects on car movement
     fSpeedScaled = fAbsoluteSpeed * 0.015f;
-    if (fRPMRatio != 1.0 || (char)pCar->byGearAyMax == -1) {
+    if (fRPMRatio != 1.0 || pCar->byGearAyMax == 0xFF) {
       //if ((LODWORD(fBankingForceY) & 0x7FFFFFFF) == 0) {
       if (fabs(fBankingForceY) == 0) {
         if (fSpeedOverflow >= 0.0) {
@@ -2967,7 +2967,7 @@ LABEL_171:
             }
           }
         }
-        if (pCar->iStunned && pCar->iControlType == 3 || (pCar->byStatusFlags & 4) != 0)// Apply speed reduction when car is stunned or has damage status
+        if ((pCar->iStunned && pCar->iControlType == 3) || (pCar->byStatusFlags & 4) != 0)// Apply speed reduction when car is stunned or has damage status
         {
           pCar->fFinalSpeed = pCar->fFinalSpeed + -2.0f;
           if (pCar->fFinalSpeed < 0.0)
@@ -2977,7 +2977,7 @@ LABEL_171:
             pCar->nTargetChunk = 72;
           SetEngine(pCar, pCar->fFinalSpeed);
           //if (((LODWORD(pCar->fFinalSpeed) & 0x7FFFFFFF) == 0 || (LODWORD(pCar->fHealth) & 0x7FFFFFFF) == 0 && pCar->nDeathTimer < -54)
-          if ((fabs(pCar->fFinalSpeed) == 0 || fabs(pCar->fHealth) == 0 && pCar->nDeathTimer < -54)
+          if ((fabs(pCar->fFinalSpeed) == 0 || (fabs(pCar->fHealth) == 0 && pCar->nDeathTimer < -54))
             && !pCar->iPitchCameraOffset
             && !pCar->iRollCameraOffset
             && !pCar->nTargetChunk) {
@@ -3077,7 +3077,7 @@ LABEL_493:
   fCurrentSpeedFloat = fAbsoluteSpeed;
   SetEngine(pCar, pCar->fFinalSpeed);
   //if (((LODWORD(fCurrentSpeedFloat) & 0x7FFFFFFF) == 0 || (LODWORD(pCar->fHealth) & 0x7FFFFFFF) == 0 && pCar->nDeathTimer < -54)
-  if ((fabs(fCurrentSpeedFloat) == 0 || fabs(pCar->fHealth) == 0 && pCar->nDeathTimer < -54)
+  if ((fabs(fCurrentSpeedFloat) == 0 || (fabs(pCar->fHealth) == 0 && pCar->nDeathTimer < -54))
     && !pCar->iPitchCameraOffset
     && !pCar->iRollCameraOffset
     && !pCar->nTargetChunk) {
@@ -3561,7 +3561,7 @@ void checkplacement(tCar *pCar)
     {
       iCarArrayIdx = 0;
       do {
-        if (iCarCounter != pCar->iDriverIdx && Car[iCarArrayIdx].iControlType == 3 && uiLaneType == Car[iCarArrayIdx].iLaneType) {
+        if (iCarCounter != pCar->iDriverIdx && Car[iCarArrayIdx].iControlType == 3 && uiLaneType == (unsigned int)Car[iCarArrayIdx].iLaneType) {
           iChunkDiff = iNewChunk - Car[iCarArrayIdx].nCurrChunk;
           iNormalizedChunkDiff = iChunkDiff;
           if (iChunkDiff < 0)
@@ -5165,8 +5165,8 @@ LABEL_24:
       break;
     case 3:
       pCar->iTrackedCarIdx = -1;
-      if (iRightCarIdx == -1 || fRightTime < 0.0 || fRightTime >(double)fLeftTime && fLeftTime >= 0.0 || pCar->byCarDesignIdx == Car[iRightCarIdx].byCarDesignIdx) {
-        if (iLeftCarIdx == -1 || fLeftTime < 0.0 || fLeftTime >(double)fRightTime && fRightTime >= 0.0 || pCar->byCarDesignIdx == Car[iLeftCarIdx].byCarDesignIdx) {
+      if (iRightCarIdx == -1 || fRightTime < 0.0 || (fRightTime > (double)fLeftTime && fLeftTime >= 0.0) || pCar->byCarDesignIdx == Car[iRightCarIdx].byCarDesignIdx) {
+        if (iLeftCarIdx == -1 || fLeftTime < 0.0 || (fLeftTime > (double)fRightTime && fRightTime >= 0.0) || pCar->byCarDesignIdx == Car[iLeftCarIdx].byCarDesignIdx) {
         LABEL_155:
           fInterpolatedY = fTargetY;
         } else {
@@ -5247,7 +5247,7 @@ LABEL_24:
   if (iSteeringSensitivity > pEngine->iSteeringSensitivity)
     iSteeringSensitivity = pEngine->iSteeringSensitivity;
   pCar->iSteeringInput = iSteeringSensitivity;
-  if ((char)pCar->byGearAyMax == -1)          // AI gear shifting and RPM control based on engine state
+  if (pCar->byGearAyMax == 0xFF)          // AI gear shifting and RPM control based on engine state
   {
     fRPMRatio = pCar->fRPMRatio;
     if (fRPMRatio >= 0.1) {
@@ -5942,8 +5942,8 @@ void landontrack(tCar *pCar)
           pCurrentData = &data;
           fLocalCoordZ = (float)(dSeparatedY2 * data.pointAy[1].fZ + dSeparatedX2 * data.pointAy[0].fZ + dSeparatedZ2 * data.pointAy[2].fZ);
         }
-        if (GroundColour[iChunk][2] >= 0 && fLocalCoordY < 0.0
-          || GroundColour[iChunk][2] < 0 && -pCurrentData->fTrackHalfWidth - pTrackInfo->fRShoulderWidth + CarBaseY >= fLocalCoordY) {
+        if ((GroundColour[iChunk][2] >= 0 && fLocalCoordY < 0.0)
+          || (GroundColour[iChunk][2] < 0 && -pCurrentData->fTrackHalfWidth - pTrackInfo->fRShoulderWidth + CarBaseY >= fLocalCoordY)) {
           pGroundPts2 = &GroundPt[iChunk];
           dGroundY4 = pGroundPts2->pointAy[4].fY + pCurrentData->pointAy[3].fY;
           dGroundX4 = pGroundPts2->pointAy[4].fX + pCurrentData->pointAy[3].fX;
@@ -6395,7 +6395,7 @@ void ordercars()
           {                                     // If same progress, compare by track position (chunk and X coordinate)
             if (byLapNumber == byCurrentProgress) {
               nCurrChunk = pNextCar->nCurrChunk;
-              if (nCurrChunk > pCurrentCar->nCurrChunk || nCurrChunk == pCurrentCar->nCurrChunk && pNextCar->pos.fX > (double)pCurrentCar->pos.fX) {
+              if (nCurrChunk > pCurrentCar->nCurrChunk || (nCurrChunk == pCurrentCar->nCurrChunk && pNextCar->pos.fX > (double)pCurrentCar->pos.fX)) {
                 iSwapCarIndex = carorder[uiSortIndex / 4];// Swap car positions: next car is ahead by position
                 carorder[uiSortIndex / 4] = carorder[uiSortIndex / 4 + 1];
                 carorder[uiSortIndex / 4 + 1] = iSwapCarIndex;
@@ -7055,7 +7055,7 @@ void dospray(tCar *pCar, int iCinematicMode, tCarSpray *pCarSpray)
       goto SET_COLOR_CYCLE;
     }
   CONTINUE_COLOR_ANIMATION:
-    if ((uint8)pCarSpray->iColor && (uint8)pCarSpray->iColor < 0x15u || (uint8)pCarSpray->iColor > 0x17u)
+    if (((uint8)pCarSpray->iColor && (uint8)pCarSpray->iColor < 0x15u) || (uint8)pCarSpray->iColor > 0x17u)
       pCarSpray->iColor = 1302;
     pCarSpray->position.fX = pCarSpray->velocity.fX + pCarSpray->position.fX;// Update particle physics: position += velocity, apply gravity/forces
     pCarSpray->position.fY = pCarSpray->velocity.fY + pCarSpray->position.fY;
