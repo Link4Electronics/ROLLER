@@ -5791,33 +5791,16 @@ void swap_block_headers(uint8 *pBuf, uint32 uiFileLength)
   memcpy(&raw_offset, pBuf + 8, sizeof(raw_offset));
   uint32 actual_offset = __builtin_bswap32(raw_offset);
   uint32 iHeaderCount = actual_offset / (uint32)sizeof(tBlockHeader);
-  uint32 iHeaderBytes = iHeaderCount * (uint32)sizeof(tBlockHeader);
-  if (iHeaderBytes != actual_offset) iHeaderCount = 0;
-  if (iHeaderCount < 1 || iHeaderCount > 256) iHeaderCount = 0;
-  if (iHeaderBytes > uiFileLength) iHeaderCount = 0;
-  if (iHeaderCount == 0) {
+  if (iHeaderCount < 1 || iHeaderCount > 256) {
     iHeaderCount = uiFileLength / (uint32)sizeof(tBlockHeader);
     if (iHeaderCount > 256) iHeaderCount = 256;
+    if (iHeaderCount < 1) return;
   }
+  uint32 iMaxHeaderBytes = actual_offset;
+  if (iMaxHeaderBytes > uiFileLength) iMaxHeaderBytes = uiFileLength;
   for (uint32 i = 0; i < iHeaderCount; i++) {
     uint32 iEntryOff = i * (uint32)sizeof(tBlockHeader);
-    if (iEntryOff + (uint32)sizeof(tBlockHeader) > uiFileLength) break;
-    uint32 fields[3];
-    memcpy(fields, pBuf + iEntryOff, sizeof(fields));
-    fields[0] = __builtin_bswap32(fields[0]);
-    fields[1] = __builtin_bswap32(fields[1]);
-    fields[2] = __builtin_bswap32(fields[2]);
-    if (fields[0] == 0 || fields[0] > 256 ||
-        fields[1] == 0 || fields[1] > 256 ||
-        fields[2] < iEntryOff + (uint32)sizeof(tBlockHeader) ||
-        fields[2] + (uint32)fields[0] * (uint32)fields[1] > uiFileLength) {
-      iHeaderCount = i; break;
-    }
-    memcpy(pBuf + iEntryOff, fields, sizeof(fields));
-  }
-  while (iHeaderCount < 256) {
-    uint32 iEntryOff = iHeaderCount * (uint32)sizeof(tBlockHeader);
-    if (iEntryOff + (uint32)sizeof(tBlockHeader) > uiFileLength) break;
+    if (iEntryOff + (uint32)sizeof(tBlockHeader) > iMaxHeaderBytes) break;
     uint32 fields[3];
     memcpy(fields, pBuf + iEntryOff, sizeof(fields));
     fields[0] = __builtin_bswap32(fields[0]);
@@ -5830,7 +5813,6 @@ void swap_block_headers(uint8 *pBuf, uint32 uiFileLength)
       break;
     }
     memcpy(pBuf + iEntryOff, fields, sizeof(fields));
-    iHeaderCount++;
   }
 }
 
