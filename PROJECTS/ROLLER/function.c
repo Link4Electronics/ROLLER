@@ -117,8 +117,8 @@ static void firework_display_ticks(int iMaxTicks)
                 //iAngleIndex = ((iRandAngle << 14) - (__CFSHL__(iRandAngle << 14 >> 31, 15) + (iRandAngle << 14 >> 31 << 15))) >> 15;
                 
                 dRandVelocity = (double)ROLLERrandRaw() * 2.0 * 0.000030517578125;
-                pSprayData->velocity.fX = (float)dRandVelocity * tcos[iAngleIndex] + fOrigVelX;
-                pSprayData->velocity.fY = (float)dRandVelocity * tsin[iAngleIndex] + fOrigVelY;
+                pSprayData->velocity.fX = (float)dRandVelocity * tcos[iAngleIndex & 16383] + fOrigVelX;
+                pSprayData->velocity.fY = (float)dRandVelocity * tsin[iAngleIndex & 16383] + fOrigVelY;
                 iRandParticleLife = ROLLERrandRaw();
                 ++pSprayData;
                 ++iParticleCount;

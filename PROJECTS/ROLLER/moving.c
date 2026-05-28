@@ -295,11 +295,11 @@ void updateramp(tStuntData *pStunt)
     iHeightValue = iHeightOffset;
     fAngleSin = tsin[iAngle];                   // Get trigonometric values from lookup tables for rotation matrix
     fAngleCos = tcos[iAngle];
-    fHeightCos = tcos[iHeightOffset];
+    fHeightCos = tcos[iHeightOffset & 16383];
     fRotXX = fHeightCos * fAngleCos;            // Build 3D rotation matrix components for coordinate transformation
     fRotYX = fHeightCos * fAngleSin;
     fNegAngleSin = -fAngleSin;
-    fHeightSin = tsin[iHeightOffset];
+    fHeightSin = tsin[iHeightOffset & 16383];
     dNegSin = -fHeightSin;
     fRotXZ = (float)dNegSin * fAngleCos;
     fRotYZ = (float)dNegSin * fAngleSin;
