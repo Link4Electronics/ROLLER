@@ -5768,10 +5768,6 @@ void display_block(uint8 *pDest, tBlockHeader *pSrc, int iBlockIdx, int iX, int 
   pDestItr = &pDest[640 * iY + iX];
   pPixelData = (uint8 *)pSrc + pSrc[iPixelDataOffset].iDataOffset;
   iBlockHeight2 = iBlockHeight;
-  fprintf(stderr, "display_block: pSrc=%p iDataOffset[%d]=%d (0x%x) w=%d h=%d pPixel=%p bufEnd=%p\n",
-    (void*)pSrc, iBlockIdx, pSrc[iBlockIdx].iDataOffset,
-    (unsigned)pSrc[iBlockIdx].iDataOffset, iBlockWidth, iBlockHeight,
-    (void*)pPixelData, (void*)((uint8*)pSrc + 0x200000));
 
   // Process each row
   for (i = 0; i < iBlockHeight2; ++i) {
@@ -5800,7 +5796,6 @@ void swap_block_headers(uint8 *pBuf, uint32 uiFileLength)
     uint32 height = read_le32(pBuf + off + 4);
     uint32 dataOff = read_le32(pBuf + off + 8);
     if (width == 0 || height == 0 || dataOff == 0) break;
-    if (width > 256 || height > 256) break;
     if (dataOff >= uiFileLength) break;
     if ((uint64)dataOff + (uint64)width * (uint64)height > uiFileLength) break;
     memcpy(pBuf + off, &width, 4);
@@ -5831,16 +5826,7 @@ uint8 *load_picture(const char *szFile)
   if ((uint32)iDecompressedSize > uiFileLength) {
     ErrorBoxExit("Decompressed size %d exceeds buffer %u for %s", iDecompressedSize, uiFileLength, szFile);
   }
-  fprintf(stderr, "BEFORE swap: %s pBuf=%p size=%d first3: w=%u h=%u dOff=%u\n",
-    szFile, (void*)pBuf, iDecompressedSize,
-    read_le32(pBuf), read_le32(pBuf+4), read_le32(pBuf+8));
   swap_block_headers(pBuf, iDecompressedSize);
-  {
-    uint32 w, h, d;
-    memcpy(&w, pBuf, 4); memcpy(&h, pBuf+4, 4); memcpy(&d, pBuf+8, 4);
-    fprintf(stderr, "AFTER  swap: %s pBuf=%p size=%d first3: w=%u h=%u dOff=%u\n",
-      szFile, (void*)pBuf, iDecompressedSize, w, h, d);
-  }
   return pBuf;
 }
 
