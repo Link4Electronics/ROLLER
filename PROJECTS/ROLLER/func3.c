@@ -5768,6 +5768,10 @@ void display_block(uint8 *pDest, tBlockHeader *pSrc, int iBlockIdx, int iX, int 
   pDestItr = &pDest[640 * iY + iX];
   pPixelData = (uint8 *)pSrc + pSrc[iPixelDataOffset].iDataOffset;
   iBlockHeight2 = iBlockHeight;
+  fprintf(stderr, "display_block: pSrc=%p iDataOffset[%d]=%d (0x%x) w=%d h=%d pPixel=%p bufEnd=%p\n",
+    (void*)pSrc, iBlockIdx, pSrc[iBlockIdx].iDataOffset,
+    (unsigned)pSrc[iBlockIdx].iDataOffset, iBlockWidth, iBlockHeight,
+    (void*)pPixelData, (void*)((uint8*)pSrc + 0x200000));
 
   // Process each row
   for (i = 0; i < iBlockHeight2; ++i) {
