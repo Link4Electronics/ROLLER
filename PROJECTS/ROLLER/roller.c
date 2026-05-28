@@ -1638,14 +1638,17 @@ void ErrorBoxExit(const char *szErrorMsgFormat, ...)
 
 void autoselectsoundlanguage() // Add by ROLLER to auto-select languagename when config.ini is not found
 {
-  // Scan all languages from LANGUAGE.INI and pick the first one whose text files exist on disk
-  for (int i = 0; i < languages; i++) {
-    char szTestFile[32];
-    snprintf(szTestFile, sizeof(szTestFile), "ingame.%s", TextExt + i * 4);
-    if (ROLLERfexists(szTestFile)) {
+  // Scan non-English languages. Text files exist for all languages in multi-language
+  // releases, so we check for SAMPLE files too to find the primary language.
+  for (int i = 1; i < languages; i++) {
+    char szTestText[32], szTestSample[32];
+    snprintf(szTestText, sizeof(szTestText), "ingame.%s", TextExt + i * 4);
+    snprintf(szTestSample, sizeof(szTestSample), "GO.%s", SampleExt + i * 4);
+    if (ROLLERfexists(szTestText) && ROLLERfexists(szTestSample)) {
       sscanf(lang[i], "%s", languagename);
       language = i;
-      SDL_Log("autoselectsoundlanguage: config.ini not found, detected '%s' from '%s'", languagename, szTestFile);
+      SDL_Log("autoselectsoundlanguage: config.ini not found, detected '%s' (text=%s sample=%s)",
+              languagename, szTestText, szTestSample);
       return;
     }
   }
