@@ -3797,8 +3797,17 @@ int getcompactedfilelength(const char *szFile)
   if (!pFile) ErrorBoxExit("Could not open file %s", szFile);
   fread(&iLength, 1u, 4u, pFile);
   fclose(pFile);
-  if (roller_is_big_endian())
-    iLength = __builtin_bswap32(iLength);
+  {
+    int iSwapped = (int)__builtin_bswap32((uint32)iLength);
+    /* Data-driven heuristic: pick the value that looks like a reasonable
+       decompressed size (100..2 MB). This works even if roller_is_big_endian()
+       gives a wrong answer on an unusual compiler. */
+    int iNativeOk = (iLength >= 100 && iLength <= 0x200000);
+    int iSwappedOk = (iSwapped >= 100 && iSwapped <= 0x200000);
+    if (iNativeOk && !iSwappedOk) iLength = iLength;
+    else if (iSwappedOk && !iNativeOk) iLength = iSwapped;
+    else if (roller_is_big_endian()) iLength = iSwapped;
+  }
   return iLength;
 }
 

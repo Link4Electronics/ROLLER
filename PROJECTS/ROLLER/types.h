@@ -219,11 +219,31 @@ typedef struct
 
 //-------------------------------------------------------------------------------------------------
 
-// Runtime endianness detection - works on all compilers and platforms
+// Byte-order detection: returns 1 if this platform is big-endian.
+// Uses compile-time macros when available; falls back to runtime detection.
+// Define ROLLER_FORCE_BE=1 or ROLLER_FORCE_LE=1 in CFLAGS to override.
 static inline int roller_is_big_endian(void)
 {
-  static const uint16_t x = 1;
-  return *(const uint8_t *)&x == 0;
+#if defined(ROLLER_FORCE_BE) && ROLLER_FORCE_BE
+  return 1;
+#elif defined(ROLLER_FORCE_LE) && ROLLER_FORCE_LE
+  return 0;
+#elif defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+  return 1;
+#elif defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+  return 0;
+#elif defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN) || defined(BIG_ENDIAN)
+  return 1;
+#elif defined(__LITTLE_ENDIAN__) || defined(_LITTLE_ENDIAN) || defined(LITTLE_ENDIAN)
+  return 0;
+#else
+  /* Runtime fallback: check memory representation via union (no pointer aliasing) */
+  {
+    union { uint16_t x; uint8_t c[2]; } u;
+    u.x = 1;
+    return u.c[0] == 0;
+  }
+#endif
 }
 
 //-------------------------------------------------------------------------------------------------
