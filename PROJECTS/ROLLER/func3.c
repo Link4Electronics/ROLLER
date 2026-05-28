@@ -3495,9 +3495,7 @@ void snapshot_render_championship_over(void)
 
 //-------------------------------------------------------------------------------------------------
 //0005B6A0
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 void swap_block_headers(uint8 *, uint32);
-#endif
 uint8 *try_load_picture(const char *szFile)
 {
   uint8 *pBuf2; // ebx
@@ -3514,10 +3512,7 @@ uint8 *try_load_picture(const char *szFile)
     pBuf2 = pBuf;
     if (pBuf) {
       loadcompactedfile(szFile, pBuf);
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-      // Same tBlockHeader byte-swap as load_picture
       swap_block_headers(pBuf, iLength);
-#endif
     }
   }
   return pBuf2;
@@ -5788,9 +5783,9 @@ void display_block(uint8 *pDest, tBlockHeader *pSrc, int iBlockIdx, int iX, int 
   }
 }
 
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 void swap_block_headers(uint8 *pBuf, uint32 uiFileLength)
 {
+  if (!roller_is_big_endian()) return;
   if (!pBuf || uiFileLength < (uint32)sizeof(tBlockHeader)) return;
   uint32 raw_offset;
   memcpy(&raw_offset, pBuf + 8, sizeof(raw_offset));
@@ -5838,7 +5833,6 @@ void swap_block_headers(uint8 *pBuf, uint32 uiFileLength)
     iHeaderCount++;
   }
 }
-#endif
 
 //-------------------------------------------------------------------------------------------------
 //0005DD40
@@ -5859,9 +5853,7 @@ uint8 *load_picture(const char *szFile)
   uiFileLength = getcompactedfilelength(szFile);
   pBuf = (uint8 *)getbuffer(uiFileLength);
   loadcompactedfile(szFile, pBuf);
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
   swap_block_headers(pBuf, uiFileLength);
-#endif
   return pBuf;
 }
 

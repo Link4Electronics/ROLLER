@@ -3797,10 +3797,8 @@ int getcompactedfilelength(const char *szFile)
   if (!pFile) ErrorBoxExit("Could not open file %s", szFile);
   fread(&iLength, 1u, 4u, pFile);
   fclose(pFile);
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-  // Compacted file header stores uncompressed size as 4-byte LE integer
-  iLength = __builtin_bswap32(iLength);
-#endif
+  if (roller_is_big_endian())
+    iLength = __builtin_bswap32(iLength);
   return iLength;
 }
 

@@ -218,4 +218,13 @@ typedef struct
 } tColor;
 
 //-------------------------------------------------------------------------------------------------
+
+// Runtime endianness detection - works on all compilers and platforms
+static inline int roller_is_big_endian(void)
+{
+  static const uint16_t x = 1;
+  return *(const uint8_t *)&x == 0;
+}
+
+//-------------------------------------------------------------------------------------------------
 #endif

@@ -331,9 +331,7 @@ void LoadPanel()
       pBuf = getbuffer(uiFileLength);
       rev_vga[iRevIdx] = (tBlockHeader*)pBuf;  // Store buffer pointer in array
       loadcompactedfile(szRevPtr, (uint8 *)pBuf);
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
       swap_block_headers((uint8 *)pBuf, uiFileLength);
-#endif
 
       ++iRevIdx;
       szRevPtr += 13;  // Move to next filename
@@ -357,9 +355,7 @@ void LoadPanel()
       pBuf = getbuffer(uiFileLength);
       rev_vga[iRevIdx] = (tBlockHeader *)pBuf;  // Store buffer pointer in array
       loadcompactedfile(szRevPtr, (uint8 *)pBuf);
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
       swap_block_headers((uint8 *)pBuf, uiFileLength);
-#endif
 
       ++iRevIdx;
       szRevPtr += 13;  // Move to next filename

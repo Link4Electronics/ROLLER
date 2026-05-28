@@ -191,20 +191,22 @@ static int SelectIntroFile(int iAvoidIntro)
   return iIntroFile;
 }
 
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 static void swap_replay_header_ints(void)
 {
+  if (!roller_is_big_endian()) return;
   for (int i = 0; i < 16; i++)
     non_competitors[i] = (int)__builtin_bswap32((uint32)non_competitors[i]);
   racers = (int)__builtin_bswap32((uint32)racers);
 }
 static void swap_replay_camera(tReplayCamera *pCam, int n)
 {
+  if (!roller_is_big_endian()) return;
   for (int i = 0; i < n; i++)
     pCam[i].iFrame = (int)__builtin_bswap32((uint32)pCam[i].iFrame);
 }
 static void swap_replay_data(tReplayData *pData)
 {
+  if (!roller_is_big_endian()) return;
   pData->iPackedPosX   = (int)__builtin_bswap32((uint32)pData->iPackedPosX);
   pData->iPackedPosY   = (int)__builtin_bswap32((uint32)pData->iPackedPosY);
   pData->iPackedPosZ   = (int)__builtin_bswap32((uint32)pData->iPackedPosZ);
@@ -215,11 +217,6 @@ static void swap_replay_data(tReplayData *pData)
   pData->nActualYaw    = (int16)__builtin_bswap16((uint16)pData->nActualYaw);
   pData->nSpeedAndStatus = (int16)__builtin_bswap16((uint16)pData->nSpeedAndStatus);
 }
-#else
-static void swap_replay_header_ints(void) {}
-static void swap_replay_camera(tReplayCamera *pCam, int n) { (void)pCam; (void)n; }
-static void swap_replay_data(tReplayData *pData) { (void)pData; }
-#endif
 
 //-------------------------------------------------------------------------------------------------
 //00063DB0
@@ -1358,9 +1355,8 @@ replayData.nSpeedAndStatus = iConversionBuffer | (((int8)pCar->byLives + 2) << 1
             fread(&pRampData_1, 2u, 1u, replayfile);
             if (j < totalramps && *ppRampReplay) {
               uint16 uiRampVal = (uint16)(uintptr_t)pRampData_1;
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-              uiRampVal = (uint16)__builtin_bswap16(uiRampVal);
-#endif
+              if (roller_is_big_endian())
+                uiRampVal = (uint16)__builtin_bswap16(uiRampVal);
               (*ppRampReplay)->iTickStartIdx = uiRampVal;
             }
             ++ppRampReplay;

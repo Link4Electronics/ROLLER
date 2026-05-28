@@ -136,9 +136,7 @@ void scale_text(tBlockHeader *pFont,
 void display_picture(void *pDest, const void *pSrc);
 void display_block(uint8 *pDest, tBlockHeader *pSrc, int iBlockIdx, int iX, int iY, int iTransparentColor);
 uint8 *load_picture(const char *szFile);
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 void swap_block_headers(uint8 *pBuf, uint32 uiFileLength);
-#endif
 void AllocateCars();
 void check_cars();
 void select_messages();
