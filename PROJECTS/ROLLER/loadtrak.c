@@ -1030,7 +1030,7 @@ void read_texturemap(uint8 **ppTrackData)
     if (meof) break;
   } while (fp_buf[0] != 84);
   if (meof) return;
-  pszBufPtr = fp_buf;
+  pszBufPtr = (char *)fp_buf;
   do
     byCurrentChar = *++pszBufPtr;               // Scan forward in the line to find the ':' separator
   while (byCurrentChar != 58);

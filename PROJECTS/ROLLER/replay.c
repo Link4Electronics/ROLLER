@@ -1640,7 +1640,7 @@ void DoReplayData()
                   do {
                     uiTexArrayOffset += 44;
                     car_texs_loaded[uiTexArrayOffset / 4 + 12] = 0;
-                  } while (uiTexArrayOffset != iTexOffsetStep);
+                  } while (uiTexArrayOffset != (unsigned int)iTexOffsetStep);
                 }
                 ++iCarTexIdx;
                 ++iTexCleanupIdx;
@@ -2169,7 +2169,7 @@ void Rassemble()
       if (pOutputFile) {
         fseek(replayfile, 0, 0);
         fread(pData, 1u, replayheader, replayfile);
-        if (fwrite(pData, 1, replayheader, pOutputFile) != replayheader) {
+        if (fwrite(pData, 1, replayheader, pOutputFile) != (size_t)replayheader) {
           iErrorCode1 = errno;
           iErrorFlag = -1;
           iLastError = iErrorCode1;
@@ -2289,11 +2289,11 @@ void Rassemble()
                   ++iCarIndex2;
                   carVelocityData[iCarLoop2++] = byProcessedData;
                   iCarCount = numcars;
-                  *(int *)(szCarDataPtr2 - 30) = ((char)byProcessedData << 24) | *(int *)(szCarDataPtr2 - 30) & 0xFFFFFF;
+                  *(int *)(szCarDataPtr2 - 30) = ((char)byProcessedData << 24) | (*(int *)(szCarDataPtr2 - 30) & 0xFFFFFF);
                 } while (iCarLoop2 < iCarCount);
               }
               iDataWritten = -1;
-              if (fwrite(szDataBuffer, 1, replayblock, fp) != replayblock) {
+              if (fwrite(szDataBuffer, 1, replayblock, fp) != (size_t)replayblock) {
                 iErrorCode6 = errno;
                 iErrorFlag = -1;
                 iLastError = iErrorCode6;
@@ -2302,7 +2302,7 @@ void Rassemble()
             szDataBuffer += replayblock;
             ++iFrameCounter;
           }
-        } while (k == uiSize && !iErrorFlag);
+        } while (k == (int)uiSize && !iErrorFlag);
         iHasData = iDataWritten;                // Close file and handle errors - delete incomplete file on failure
         fclose(fp);
         if (!iHasData) {
@@ -2840,8 +2840,8 @@ void fileselect(int iBoxX0, int iBoxY0, int iBoxX1, int iBoxY1, int iTextX, int 
             byProcessedKey = byKeyCode & 0xDF;
           iInputStrLen = (uint32)strlen(selectfilename);
           if (iInputStrLen <= 7
-            && ((uint8)byProcessedKey >= 0x41u && (uint8)byProcessedKey <= 0x5Au
-                || (uint8)byProcessedKey >= 0x30u && (uint8)byProcessedKey <= 0x39u)) {
+            && (((uint8)byProcessedKey >= 0x41u && (uint8)byProcessedKey <= 0x5Au)
+                || ((uint8)byProcessedKey >= 0x30u && (uint8)byProcessedKey <= 0x39u))) {
             selectfilename[iInputStrLen] = byProcessedKey;
             selectfilename[iInputStrLen + 1] = 0;
           }
@@ -3165,7 +3165,7 @@ void nextcut()
       currentreplayframe = iSearchFrame;
       uiCurrDisabled = readdisable(iSearchFrame);
       iTargetFrame = currentreplayframe;
-      if (currentreplayframe >= replayframes - 1 || !uiCurrDisabled && uiPrevDisabled)
+      if (currentreplayframe >= replayframes - 1 || (!uiCurrDisabled && uiPrevDisabled))
         break;                                  // Stop at end of replay or transition from disabled to enabled
       if (currentreplayframe >= iNextCutFrame)
         break;                                  // Stop if reached next cut frame boundary
@@ -3511,7 +3511,7 @@ void displaycontrolpanel()
   }
   if (!replayedit)                            // Draw control panel overlay if not in replay edit mode
     replayicon(scrbuf, rev_vga[15], 77, 117, 187, iScreenWidth, -1);
-  if (!keys[WHIP_SCANCODE_RETURN] || paused || (iIconOffset = -1, controlicon == 18) && !replayselect)// Calculate icon offset: -1 if ENTER pressed and conditions met, 0 otherwise
+  if (!keys[WHIP_SCANCODE_RETURN] || paused || ((iIconOffset = -1, controlicon == 18) && !replayselect))// Calculate icon offset: -1 if ENTER pressed and conditions met, 0 otherwise
     iIconOffset = 0;
   replayicon(scrbuf, rev_vga[15], controlicon, ricon[controlicon].nX, ricon[controlicon].nY + 150 + iIconOffset, iScreenWidth, -1);// Draw current control icon with calculated offset
   if (replayspeed > 0 && !forwarding && !rewinding)// Draw fast forward indicators when replay speed is positive

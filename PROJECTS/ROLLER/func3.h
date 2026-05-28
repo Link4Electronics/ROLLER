@@ -111,7 +111,7 @@ void NoCdEnter(void);
 int NoCdUpdate(void);
 void NoCdExit(void);
 int name_cmp(char *szName1, char *szName2);
-void name_copy(char *szDest, char *szSrc);
+void name_copy(char *szDest, const char *szSrc);
 void loadtracksample(int track_number);
 void front_letter(tBlockHeader *pFont, uint8 byCharIdx, int *iX, int *iY, const char *szStr, uint8 byColorReplace);
 void scale_letter(tBlockHeader *pFont, uint8 byChar, int *iCursorX, int *iCursorY, char *mappingTable, uint8 byColorReplace, int iScaleSize);

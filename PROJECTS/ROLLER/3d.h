@@ -268,7 +268,7 @@ extern tColor palette[256];
 extern float tsin[16384];
 extern float ptan[16384];
 extern float tcos[16384];
-extern char buffer[1024];
+extern char buffer[65536];
 extern uint8 blank_line[640];
 extern int p_joyk1[2];
 extern int p_joyk2[2];

@@ -121,8 +121,8 @@ void DrawTower(int iTowerIdx, uint8 *pScrBuf)
     yp = (int)dScreenY;
     iPixelX = iPixelOffsetX >> 6;
     iPixelY = (iScreenSize * (199 - (int)dScreenY)) >> 6;// Complex visibility test for different distance ranges
-    if (fOriginalZ >= 5000.0 && xp >= -50 && xp < 370 && yp >= -50 && yp < 250
-      || fOriginalZ > -1000.0 && fOriginalZ < 5000.0 && (fTransformed3DX > -1000.0 && fTransformed3DX < 1000.0 || xp > -200 && xp < 520)) {
+    if ((fOriginalZ >= 5000.0 && xp >= -50 && xp < 370 && yp >= -50 && yp < 250)
+      || (fOriginalZ > -1000.0 && fOriginalZ < 5000.0 && ((fTransformed3DX > -1000.0 && fTransformed3DX < 1000.0) || (xp > -200 && xp < 520)))) {
       GameRenderVertex verts[4];
       float fHalfPixelSize = fClampedZ * 3.0f * 64.0f / ((float)scr_size * (float)VIEWDIST);
       float viewOffsetX[4] = { fHalfPixelSize, -fHalfPixelSize, -fHalfPixelSize, fHalfPixelSize };

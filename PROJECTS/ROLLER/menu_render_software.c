@@ -156,7 +156,7 @@ void menu_render_sw_text(MenuRendererSoftware *sw, int fontSlot,
     (void)palette;
     if (fontSlot < 0 || fontSlot >= 16 || !front_vga[fontSlot])
         return;
-    front_text(front_vga[fontSlot], text, (const uint8 *)mappingTable,
+    front_text(front_vga[fontSlot], text, (const char *)mappingTable,
                charVOffsets, x, y, colorReplace, alignment);
 }
 

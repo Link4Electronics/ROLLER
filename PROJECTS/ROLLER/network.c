@@ -686,7 +686,7 @@ void send_pause()
 void send_slot()
 {
   tSyncHeader syncHeader;
-  int iSlot;// = network_slot?
+  int iSlot = 0;// = network_slot?
 
   if (network_on) {
     syncHeader.byConsoleNode = (uint8)network_slot;
@@ -774,7 +774,7 @@ void send_multiple()
           } while (iNode >= 0);
         }
       } else {
-        pTestMini = test_mini;
+        pTestMini = (int *)test_mini;
         for (i = 0; i < 2; ++i) {
           ++pTestMini;
           iCopyMultipleVal = copy_multiple[writeptr][player_to_car[i]];
@@ -1040,7 +1040,7 @@ void receive_all_singles()
               ROLLERCommsPostListen();
               continue;
             }
-            if (transmitInitPacket.iTimeToStart != 0xFFFFFE38)
+            if (transmitInitPacket.iTimeToStart != (int32)0xFFFFFE38)
               goto LABEL_31;
             send_slot();
             ROLLERCommsPostListen();
@@ -1271,7 +1271,7 @@ static void BuildTransmitInitPacket(tSyncHeader *pHeader, tTransmitInitPacket *p
   pInitPacket->address[1] = address[1];
   pInitPacket->address[2] = address[2];
   pInitPacket->address[3] = address[3];
-  if (broadcast_mode == -9999)
+  if ((int32)broadcast_mode == -9999)
     iCarIdx = car_request - 1;
   else
     iCarIdx = Players_Cars[iConsoleNode];
@@ -1777,14 +1777,14 @@ void CheckNewNodes()
               goto LABEL_40;
             goto LABEL_104;
           }
-          if (transmitInitPacket.iTimeToStart < ~665u) {
+          if ((unsigned int)transmitInitPacket.iTimeToStart < ~665u) {
             if (transmitInitPacket.iTimeToStart == -667) {
               send_broadcast(0xFFFFFFFF);
               ROLLERCommsPostListen();
               continue;
             }
           } else {
-            if (transmitInitPacket.iTimeToStart <= ~665u)
+            if ((unsigned int)transmitInitPacket.iTimeToStart <= ~665u)
               goto LABEL_64;
             if (transmitInitPacket.iTimeToStart == -457)
               goto LABEL_40;
@@ -2462,7 +2462,7 @@ unsigned int send_broadcast(unsigned int uiBroadcastMode)
     time_to_start = 0xFFFFFE38;
     uiBroadcastMode = network_on ? (unsigned int)TransmitInit() : (unsigned int)-1;
     time_to_start = uiOldTimeToStart;
-  } else if (uiBroadcastMode == -1) {
+  } else if ((int)uiBroadcastMode == -1) {
     uiBroadcastMode = network_on ? (unsigned int)TransmitInit() : (unsigned int)-1;
   }
   return uiBroadcastMode;

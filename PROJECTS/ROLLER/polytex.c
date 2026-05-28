@@ -520,8 +520,8 @@ void POLYTEX(uint8 *pTexture, uint8 *pScrBuf, tPolyParams *pPolyParams, int iTex
 
   // Check if tex idx is valid for given tex type
   uiSurfaceType = pPolyParams->iSurfaceType;
-  if ((uint8)pPolyParams->iSurfaceType >= NoOfTextures && (uiSurfaceType & SURFACE_FLAG_SKIP_RENDER) == 0 && !iTexIdx
-    || (uint8)uiSurfaceType >= BldTextures && (uiSurfaceType & SURFACE_FLAG_SKIP_RENDER) == 0 && iTexIdx == 17)
+  if (((uint8)pPolyParams->iSurfaceType >= NoOfTextures && (uiSurfaceType & SURFACE_FLAG_SKIP_RENDER) == 0 && !iTexIdx)
+    || ((uint8)uiSurfaceType >= BldTextures && (uiSurfaceType & SURFACE_FLAG_SKIP_RENDER) == 0 && iTexIdx == 17))
   {
     // Invalid texture, render as flat colored pol instead
     pPolyParams->iSurfaceType = (uint8)pPolyParams->iSurfaceType;

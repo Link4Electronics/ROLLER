@@ -1141,14 +1141,14 @@ void readuserdata(int iPlayer)
   int iLeftEffect; // eax
   int iMinSteering; // eax
   int16 nButtonFlags_1; // bx
-  int16 nButtonFlags; // ax
+  int16 nButtonFlags = 0; // ax
   unsigned int uiGearUpKey; // edx
   int iGearChange; // eax
   unsigned int uiGearDownKey; // edx
   int iStrategyFlags; // eax
   int iNode; // edx
   int iMessageIdx; // eax
-  char iAccelState; // [esp+0h] [ebp-1Ch]
+  int8 iAccelState; // [esp+0h] [ebp-1Ch]
 
   // Skip processing during countdown phase
   if (countdown >= 140) {
@@ -1785,7 +1785,7 @@ void readsoundconfig(void)
 //0003BAF0
 char *FindConfigVar(const char *szConfigText, const char *szVarName)
 {
-  char *szMatch = strstr(szConfigText, szVarName);
+  char *szMatch = (char *)strstr(szConfigText, szVarName);
   if (!szMatch)
     return NULL;
 
@@ -1833,7 +1833,7 @@ void loadfile(const char *szFile, void **pBuf, unsigned int *uiSize, int iIsSoun
   } else {
     close(iFile);
     *uiSize = getcompactedfilelength(szFile);
-    if (!iIsSound || iIsSound == 1 && soundon) {
+    if (!iIsSound || (iIsSound == 1 && soundon)) {
       pBuf2 = trybuffer(*uiSize);
       *pBuf = pBuf2;
       if (pBuf2) {
@@ -2035,12 +2035,12 @@ void pannedsample(int iSampleIdx, int iHandle, int iPan)
     //LOWORD(iNewHandle) = sosDIGIStartSample(*(int *)&DIGIHandle, iHandle, &SamplePanned);
     SampleHandleCar[iSampleIdx].handles[0] = iNewHandle;
     //_enable();
-    if (iNewHandle != -1)                     // Update handle tracking tables if sample started successfully
+    if ((int)iNewHandle != -1)                     // Update handle tracking tables if sample started successfully
     {                                           // Validate handle is within expected range (< 32)
       //if (iNewHandle >= 0x20)
       //  _assert(0, "s>=0 && s<32", a3, 2071);
       iOldSampleIdx = HandleSample[iNewHandle]; // Clean up any existing handle mappings before assigning new ones
-      if (iOldSampleIdx != -1) {
+      if ((int)iOldSampleIdx != -1) {
         //if (iOldSampleIdx >= 0x78)
         //  _assert(0, "HandleSample[s]>=0 && HandleSample[s]<MAXSAMPLES", a3, 2075);
         //if ((unsigned int)HandleCar[iNewHandle] >= 16)
@@ -2993,7 +2993,7 @@ void loopsample(int iCarIdx, int iSample, int iVolume, int iPitch, int iPan)
     if (SampleHandleCar[iSample].handles[iCarIdx] == -1 || iVolume) {
       //iCarOffset2 = (iSample << 6) + 4 * iCarIdx;
       iSampleHandle = SampleHandleCar[iSample].handles[iCarIdx];
-      if (iSampleHandle == -1) {
+      if ((int)iSampleHandle == -1) {
         // Start new sample playback
         if (iVolume)
           sample2(iCarIdx, iSample, iVolume, iPitch, iPan, SampleHandleCar[iSample].handles[iCarIdx]);
@@ -3465,10 +3465,10 @@ void check_joystick_usage()
   Joy2used = 0;
   for (i = 0; i < 12; ++i) {
     byKey1 = userkey[i];
-    if (byKey1 == 0x80 || byKey1 == 0x81 || byKey1 >= 0x84u && byKey1 <= 0x87u)
+    if (byKey1 == 0x80 || byKey1 == 0x81 || (byKey1 >= 0x84u && byKey1 <= 0x87u))
       Joy1used = -1;
     byKey2 = userkey[i];
-    if (byKey2 == 0x82 || byKey2 == 0x83 || byKey2 >= 0x88u && byKey2 <= 0x8Bu)
+    if (byKey2 == 0x82 || byKey2 == 0x83 || (byKey2 >= 0x88u && byKey2 <= 0x8Bu))
       Joy2used = -1;
   }
 }
@@ -3509,10 +3509,23 @@ void convertname(char *szFilename)
   }
 
   // language-specific sample override
-  if (language != 0) {
-    char *szExt = strstr(szFilename, ".RAW");
-    if (szExt) {
-      const char *szLangExt = (const char *)SampleExt + language * 4;
+  char *szExt = strstr(szFilename, ".RAW");
+  if (szExt) {
+    const char *szLangExt = (const char *)SampleExt + language * 4;
+    strcpy(szExt + 1, szLangExt);
+
+    FILE *fp = ROLLERfopen(szFilename, "rb");
+    if (fp) {
+      fclose(fp);
+      return;
+    }
+  }
+
+  // If no language-specific file exists, try all other available languages
+  // (keeps text in English while using audio from whatever language is available)
+  if (szExt) {
+    for (int i = 0; i < languages; i++) {
+      const char *szLangExt = (const char *)SampleExt + i * 4;
       strcpy(szExt + 1, szLangExt);
 
       FILE *fp = ROLLERfopen(szFilename, "rb");

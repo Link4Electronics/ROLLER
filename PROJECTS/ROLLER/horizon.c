@@ -89,7 +89,7 @@ void DrawHorizon(uint8 *pScrBuf)
     iWorldTiltMasked = worldtilt & 0x3FFF;      // Complex horizon rendering: calculate tilt trigonometry
     fNegSinTilt = -tsin[iWorldTiltMasked];
     fCosTilt = tcos[iWorldTiltMasked];
-    upside_down = tcos[worldelev & 0x3FFF] < 0.0 != fCosTilt < 0.0;// Determine if world is upside-down (elevation vs tilt sign comparison)
+    upside_down = (tcos[worldelev & 0x3FFF] < 0.0) != (fCosTilt < 0.0);// Determine if world is upside-down (elevation vs tilt sign comparison)
     ground_left = fNegSinTilt < 0.0;            // Determine which side has ground based on tilt direction
     if (tcos[worldelev & 0x3FFF] < 0.0)
       ground_left = fNegSinTilt >= 0.0;
@@ -514,7 +514,7 @@ void displayclouds(uint8 *pScrBuf)
       //long long cast added by ROLLER to avoid integer overflow
       iYCalcTemp = (int)((long long)iScrSizeTemp * (199 - (int)dProjY0)) >> 6;
       fScreenY0 = (float)iYCalcTemp;
-      if (iBehindCamera || fScreenX0 >= -5000.0 && fScreenX0 <= 5000.0 && fScreenY0 >= -5000.0 && fScreenY0 <= 5000.0) {
+      if (iBehindCamera || (fScreenX0 >= -5000.0 && fScreenX0 <= 5000.0 && fScreenY0 >= -5000.0 && fScreenY0 <= 5000.0)) {
         dScreenX0 = fScreenX0;                  // Store vertex 0 coordinates in polygon structure
         //_CHP();
         poly.vertices[0].x = (int)dScreenX0;
@@ -549,7 +549,7 @@ void displayclouds(uint8 *pScrBuf)
         fScreenX1 = (float)((long long)iScrSize1 * xp >> 6);
         iYCalcTemp = ((long long)iScrSize1 * (199 - (int)dProjY1)) >> 6;
         fScreenY1 = (float)iYCalcTemp;
-        if (iBehindCamera || fScreenX1 >= -5000.0 && fScreenX1 <= 5000.0 && fScreenY1 >= -5000.0 && fScreenY1 <= 5000.0) {
+        if (iBehindCamera || (fScreenX1 >= -5000.0 && fScreenX1 <= 5000.0 && fScreenY1 >= -5000.0 && fScreenY1 <= 5000.0)) {
           dScreenX1 = fScreenX1;                // Store vertex 1 coordinates in polygon structure
           //_CHP();
           poly.vertices[1].x = (int)dScreenX1;
@@ -583,7 +583,7 @@ void displayclouds(uint8 *pScrBuf)
           fScreenX2 = (float)((long long)iScrSize2 * xp >> 6);
           iYCalcTemp = ((long long)iScrSize2 * (199 - (int)dProjY2)) >> 6;
           fScreenY2 = (float)iYCalcTemp;
-          if (iBehindCamera || fScreenX2 >= -5000.0 && fScreenX2 <= 5000.0 && fScreenY2 >= -5000.0 && fScreenY2 <= 5000.0) {
+          if (iBehindCamera || (fScreenX2 >= -5000.0 && fScreenX2 <= 5000.0 && fScreenY2 >= -5000.0 && fScreenY2 <= 5000.0)) {
             dScreenX2 = fScreenX2;              // Store vertex 2 coordinates in polygon structure
             //_CHP();
             poly.vertices[2].x = (int)dScreenX2;
@@ -617,7 +617,7 @@ void displayclouds(uint8 *pScrBuf)
             fScreenX3 = (float)((long long)iScrSize3 * xp >> 6);
             iYCalcTemp = ((long long)iScrSize3 * (199 - (int)dProjY3)) >> 6;
             fScreenY3 = (float)iYCalcTemp;
-            if (iBehindCamera || fScreenX3 >= -5000.0 && fScreenX3 <= 5000.0 && fScreenY3 >= -5000.0 && fScreenY3 <= 5000.0) {
+            if (iBehindCamera || (fScreenX3 >= -5000.0 && fScreenX3 <= 5000.0 && fScreenY3 >= -5000.0 && fScreenY3 <= 5000.0)) {
               dScreenX3 = fScreenX3;            // Store vertex 3 coordinates in polygon structure
               //_CHP();
               poly.vertices[3].x = (int)dScreenX3;

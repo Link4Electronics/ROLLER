@@ -1729,11 +1729,11 @@ void TeamStandingsEnter(void)
       display_block(scrbuf, front_vga[0], 0, 13, iDisplayY - 5, 0);
 
     // Display team position
-    sprintf(buffer, (uint8 *)"%s", szPosition);
+    sprintf(buffer, "%s", szPosition);
     front_text(front_vga[2], buffer, font2_ascii, font2_offsets, 33, iDisplayY, 0x8Fu, 0);
 
     // Display team name
-    sprintf(buffer, (uint8 *)"%s", CompanyNames[iTeamDisplayIdx]);
+    sprintf(buffer, "%s", CompanyNames[iTeamDisplayIdx]);
     front_text(front_vga[2], buffer, font2_ascii, font2_offsets, 190, iDisplayY, 0x8Fu, 0);
 
     // display car sprites
@@ -1751,29 +1751,29 @@ void TeamStandingsEnter(void)
 
     // display wins icon and count
     display_block(scrbuf, front_vga[0], 11, 475, iDisplayY - 3, 0);
-    sprintf(buffer, (uint8 *)"%i", team_wins[iTeamDisplayIdx]);
+    sprintf(buffer, "%i", team_wins[iTeamDisplayIdx]);
     front_text(front_vga[2], buffer, font2_ascii, font2_offsets, 500, iDisplayY, 0x8Fu, 0);
 
     // display fast laps icon and count
     display_block(scrbuf, front_vga[0], 10, 428, iDisplayY - 3, 0);
-    sprintf(buffer, (uint8 *)"%i", team_fasts[iTeamDisplayIdx]);
+    sprintf(buffer, "%i", team_fasts[iTeamDisplayIdx]);
     front_text(front_vga[2], buffer, font2_ascii, font2_offsets, 448, iDisplayY, 0x8Fu, 0);
 
     // display total points
-    sprintf(buffer, (uint8 *)"%3i", team_points[iTeamDisplayIdx]);
+    sprintf(buffer, "%3i", team_points[iTeamDisplayIdx]);
     front_text(front_vga[2], buffer, font2_ascii, font2_offsets, 560, iDisplayY, 0x8Fu, 0);
 
     // display kills icon and count (line 2)
     display_block(scrbuf, front_vga[0], 9, 428, iDisplayY + 18, 0);
-    sprintf(buffer, (uint8 *)"%i", team_kills[iTeamDisplayIdx]);
+    sprintf(buffer, "%i", team_kills[iTeamDisplayIdx]);
     iDisplayTeamIdx = iDisplayY + 22;
 
     // Display both team driver names
     front_text(front_vga[2], buffer, font2_ascii, font2_offsets, 448, iDisplayTeamIdx, 0x8Fu, 0);
-    sprintf(buffer, (uint8 *)"%s", driver_names[2 * iTeamDisplayIdx]);
+    sprintf(buffer, "%s", driver_names[2 * iTeamDisplayIdx]);
     front_text(front_vga[2], buffer, font2_ascii, font2_offsets, 110, iDisplayTeamIdx, 0x8Fu, 0);
 
-    sprintf(buffer, (uint8 *)"%s", driver_names[2 * iTeamDisplayIdx + 1]);
+    sprintf(buffer, "%s", driver_names[2 * iTeamDisplayIdx + 1]);
     iBestTeamIdx_1 = 2 * iTeamDisplayIdx;
     front_text(front_vga[2], buffer, font2_ascii, font2_offsets, 310, iDisplayTeamIdx, 0x8Fu, 0);
 
@@ -1886,25 +1886,25 @@ static void ShowLapRecordsDrawPage(int iFirstRecordIdx, int iLastRecordIdx)
   do
   {
     // display record number
-    sprintf(buffer, (uint8 *)"%02i", iRecordIdx);
+    sprintf(buffer, "%02i", iRecordIdx);
     front_text(front_vga[3], buffer, font2_ascii, font2_offsets, 33, iTextY, 0x8Fu, 0);
 
     iCarType = RecordCars[iArrayIdx];
     if ( iCarType < 0 )
     {
       // no record set - display default name and time
-      sprintf(buffer, (uint8 *)"%s", RecordNames[iArrayIdx]);
+      sprintf(buffer, "%s", RecordNames[iArrayIdx]);
       front_text(front_vga[3], buffer, font2_ascii, font2_offsets, 165, iTextY, 0x8Fu, 0);
       front_text(front_vga[3], "00:00:00", font2_ascii, font2_offsets, 450, iTextY, 0x8Fu, 0);
     }
     else
     {
       // display record holder name
-      sprintf(buffer, (uint8 *)"%s", RecordNames[iArrayIdx]);
+      sprintf(buffer, "%s", RecordNames[iArrayIdx]);
       front_text(front_vga[3], buffer, font2_ascii, font2_offsets, 85, iTextY, 0x8Fu, 0);
 
       // display car company name
-      sprintf(buffer, (uint8 *)"%s", CompanyNames[iCarType & 0xF]);
+      sprintf(buffer, "%s", CompanyNames[iCarType & 0xF]);
       front_text(front_vga[3], buffer, font2_ascii, font2_offsets, 218, iTextY, 0x8Fu, 0);
 
       // display car or cheat indicator
@@ -1915,7 +1915,7 @@ static void ShowLapRecordsDrawPage(int iFirstRecordIdx, int iLastRecordIdx)
 
       // display kill count icon and number
       display_block(scrbuf, front_vga[0], 9, 540, iKillIconY, 0);
-      sprintf(buffer, (uint8 *)"%i", RecordKills[iArrayIdx]);
+      sprintf(buffer, "%i", RecordKills[iArrayIdx]);
       front_text(front_vga[3], buffer, font2_ascii, font2_offsets, 560, iTextY, 0x8Fu, 0);
 
       // display lap time
@@ -3887,7 +3887,7 @@ int load_champ_begin(int iSlot)
       } else {
         cheat_mode &= ~CHEAT_MODE_DEATH_MODE;
       }
-      if (byGameSettings >= 0) {
+      if ((int8)byGameSettings >= 0) {
         //uiTempCheatMode2 = cheat_mode;
         //BYTE1(uiTempCheatMode2) = BYTE1(cheat_mode) & 0xFD;
         cheat_mode &= ~CHEAT_MODE_KILLER_OPPONENTS;// uiTempCheatMode2;
@@ -4441,11 +4441,14 @@ void ResultRoundUpEnter(void)
   } else {
     memcpy(fp_buf, "--:--:--", 8);
   }
-  if (racers - 1 > result_p1_pos || racers == 1)
-    sprintf(buffer, "%s: %s", &language_buffer[1408], &language_buffer[64 * result_p1_pos + 384]);
-  else
-    sprintf(buffer, "%s: %s", &language_buffer[1408], &language_buffer[1344]);
-  sprintf(buffer, "%s  %s %s  %s %i", buffer, &language_buffer[64], (const char *)fp_buf, &language_buffer[3968], result_kills[iPlayer1Id]);
+  {
+    int iPosLen;
+    if (racers - 1 > result_p1_pos || racers == 1)
+      iPosLen = sprintf(buffer, "%s: %s", &language_buffer[1408], &language_buffer[64 * result_p1_pos + 384]);
+    else
+      iPosLen = sprintf(buffer, "%s: %s", &language_buffer[1408], &language_buffer[1344]);
+    sprintf(buffer + iPosLen, "  %s %s  %s %i", &language_buffer[64], (const char *)fp_buf, &language_buffer[3968], result_kills[iPlayer1Id]);
+  }
   front_text(front_vga[0], buffer, font4_ascii, font5_offsets, 320, iP1StatsYPos, 0x8Fu, 1u);
   iP2HeaderYPos = iP1StatsYPos + 37;
   if (player_type == 2) {
@@ -4487,11 +4490,14 @@ void ResultRoundUpEnter(void)
       fp_buf[1] = 45;
       fp_buf[0] = 45;
     }
-    if (racers - 1 > result_p2_pos || racers == 1)
-      sprintf(buffer, "%s: %s", &language_buffer[1408], &language_buffer[64 * result_p2_pos + 384]);
-    else
-      sprintf(buffer, "%s: %s", &language_buffer[1408], &language_buffer[1344]);
-    sprintf(buffer, "%s  %s %s  %s %i", buffer, &language_buffer[64], (const char *)fp_buf, &language_buffer[3968], result_kills[iPlayer2Id]);
+    {
+      int iPosLen;
+      if (racers - 1 > result_p2_pos || racers == 1)
+        iPosLen = sprintf(buffer, "%s: %s", &language_buffer[1408], &language_buffer[64 * result_p2_pos + 384]);
+      else
+        iPosLen = sprintf(buffer, "%s: %s", &language_buffer[1408], &language_buffer[1344]);
+      sprintf(buffer + iPosLen, "  %s %s  %s %i", &language_buffer[64], (const char *)fp_buf, &language_buffer[3968], result_kills[iPlayer2Id]);
+    }
     front_text(front_vga[0], buffer, font4_ascii, font5_offsets, 320, iP2StatsYPos, 0x8Fu, 1u);
   }
   copypic(scrbuf, screen);                      // Display results screen and wait for user input
@@ -5409,7 +5415,7 @@ int name_cmp(char *szName1, char *szName2)
 
 //-------------------------------------------------------------------------------------------------
 //0005D710
-void name_copy(char *szDest, char *szSrc)
+void name_copy(char *szDest, const char *szSrc)
 {
   char *pSrcPos; // eax
   char *pSrcEndPos; // ebx
@@ -5714,7 +5720,7 @@ LABEL_14:
   do {
     if (*pRenderPtr) {                                           // Handle newline character (ASCII 10) - not implemented
       if (*pRenderPtr != 10) {                                         // Character not in font (index 255) - advance by scaled space width
-        if (mappingTable[*pRenderPtr] == -1) {
+        if ((int8)mappingTable[*pRenderPtr] == -1) {
           iCursorX += iScaledSpaceWidth;
         } else {
           iSavedY = iCursorY;                   // Render valid character: adjust Y position, call scale_letter, restore Y position
@@ -6269,8 +6275,8 @@ void select_messages()
         ;
     }
   }
-MAIN_UI_LOOP:
-  if (!iExitFlag)                             // MAIN_UI_LOOP: Main display and input processing loop
+                                 // MAIN_UI_LOOP: Main display and input processing loop
+  if (!iExitFlag)
   {
     if (iSelectedPlayer < 0 || iSelectedPlayer >= network_on)
       iSelectedPlayer = 0;

@@ -1394,9 +1394,9 @@ void menu_render_gpu_load_track_mesh(MenuRendererGPU *r, const tColor *pal)
             float px = TrakPt[i].pointAy[p].fX;
             float py = TrakPt[i].pointAy[p].fY;
             float pz = TrakPt[i].pointAy[p].fZ;
-            if (px < bbMinX) bbMinX = px; if (px > bbMaxX) bbMaxX = px;
-            if (py < bbMinY) bbMinY = py; if (py > bbMaxY) bbMaxY = py;
-            if (pz < bbMinZ) bbMinZ = pz; if (pz > bbMaxZ) bbMaxZ = pz;
+            if (px < bbMinX) { bbMinX = px; } if (px > bbMaxX) { bbMaxX = px; }
+            if (py < bbMinY) { bbMinY = py; } if (py > bbMaxY) { bbMaxY = py; }
+            if (pz < bbMinZ) { bbMinZ = pz; } if (pz > bbMaxZ) { bbMaxZ = pz; }
         }
         if (TrakPt[i].pointAy[2].fZ < minZ) minZ = TrakPt[i].pointAy[2].fZ;
         if (TrakPt[i].pointAy[2].fZ > maxZ) maxZ = TrakPt[i].pointAy[2].fZ;
