@@ -5831,7 +5831,16 @@ uint8 *load_picture(const char *szFile)
   if ((uint32)iDecompressedSize > uiFileLength) {
     ErrorBoxExit("Decompressed size %d exceeds buffer %u for %s", iDecompressedSize, uiFileLength, szFile);
   }
+  fprintf(stderr, "BEFORE swap: %s pBuf=%p size=%d first3: w=%u h=%u dOff=%u\n",
+    szFile, (void*)pBuf, iDecompressedSize,
+    read_le32(pBuf), read_le32(pBuf+4), read_le32(pBuf+8));
   swap_block_headers(pBuf, iDecompressedSize);
+  {
+    uint32 w, h, d;
+    memcpy(&w, pBuf, 4); memcpy(&h, pBuf+4, 4); memcpy(&d, pBuf+8, 4);
+    fprintf(stderr, "AFTER  swap: %s pBuf=%p size=%d first3: w=%u h=%u dOff=%u\n",
+      szFile, (void*)pBuf, iDecompressedSize, w, h, d);
+  }
   return pBuf;
 }
 
