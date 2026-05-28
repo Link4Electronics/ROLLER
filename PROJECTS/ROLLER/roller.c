@@ -1638,32 +1638,10 @@ void ErrorBoxExit(const char *szErrorMsgFormat, ...)
 
 void autoselectsoundlanguage() // Add by ROLLER to auto-select languagename when config.ini is not found
 {
-  SDL_Log("autoselectsoundlanguage: config.ini not found");
+  SDL_Log("autoselectsoundlanguage: config.ini not found, defaulting to English");
 
-  // Set default language as English
   sscanf(lang[0], "%s", languagename);
   language = 0;
-
-  for (int i = 0; i < languages; i++) {
-    char audioFileName[32];
-    char textFileName[32];
-
-    const char *szTextExt = (char *)TextExt + i * 4;
-    const char *szLangExt = (const char *)SampleExt + i * 4;
-
-    snprintf(textFileName, sizeof(textFileName), "./CONFIG.%s", szTextExt); // e.g., CONFIG.ENG, CONFIG.FRA, CONFIG.GER, CONFIG.BPO, CONFIG.SAS.
-    snprintf(audioFileName, sizeof(audioFileName), "./GO.%s", szLangExt); // e.g., GO.RAW, GO.RFR, GO.RGE, GO.RBP, GO.RSS.
-
-    //SDL_Log("lang[%i]: %s", i, lang[i]);
-    //SDL_Log("textFileName[%i]: %s", i, textFileName);
-    //SDL_Log("audioFileName[%i]: %s", i, audioFileName);
-    if (ROLLERfexists(textFileName) && ROLLERfexists(audioFileName)) {
-      sscanf(lang[i], "%s", languagename);
-      language = i;
-      SDL_Log("autoselectsoundlanguage: select language[%i]: %s - %s %s", language, languagename, szTextExt, szLangExt);
-      break;
-    }
-  }
 }
 
 //-------------------------------------------------------------------------------------------------
