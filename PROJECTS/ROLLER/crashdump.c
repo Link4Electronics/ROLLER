@@ -26,6 +26,10 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef IS_PPC64
+#include <asm/ptrace.h>
+#endif
+
 #ifdef IS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -520,6 +524,12 @@ static void GetSignalContextRegisters(void *pContext, uint64 *pullPc, uint64 *pu
     ucontext_t *pUContext = (ucontext_t *)pContext;
     *pullPc = (uint64)pUContext->uc_mcontext.pc;
     *pullSp = (uint64)pUContext->uc_mcontext.sp;
+  }
+#elif defined(IS_LINUX) && defined(IS_PPC64)
+  {
+    ucontext_t *pUContext = (ucontext_t *)pContext;
+    *pullPc = (uint64)pUContext->uc_mcontext.regs->nip;
+    *pullSp = (uint64)pUContext->uc_mcontext.regs->gpr[1];
   }
 #elif defined(IS_MACOS) && defined(__x86_64__)
   {
