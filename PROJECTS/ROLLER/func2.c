@@ -1284,7 +1284,7 @@ void ZoomString(const char *szStr, const char *mappingTable, tBlockHeader *pBloc
   int iStringDone; // [esp+18h] [ebp-10h]
 
   fEffectiveGameScale = get_effective_game_scale(iPlayerIdx);
-  if (fEffectiveGameScale < 32768.0 && zoom_size[iPlayerIdx] || !zoom_size[iPlayerIdx] && fEffectiveGameScale < 1024.0) {                                             // Check for 2-player mode or widescreen cheat
+  if ((fEffectiveGameScale < 32768.0 && zoom_size[iPlayerIdx]) || (!zoom_size[iPlayerIdx] && fEffectiveGameScale < 1024.0)) {                                             // Check for 2-player mode or widescreen cheat
     if (player_type == 2 || (cheat_mode & CHEAT_MODE_WIDESCREEN) != 0)// CHEAT_MODE_WIDESCREEN
       zoom_x = 320;                             // Set zoom center X to 320 for 2-player/widescreen
     else
@@ -1848,7 +1848,7 @@ void key_handler(uint8 byScancode)
     } else {
       // Normal keys
       uint32 uiNext = (write_key + 1) % 64;
-      if (uiNext != read_key) {  // Only store if buffer not full
+      if (uiNext != (uint32)read_key) {  // Only store if buffer not full
         key_buffer[write_key] = byScancode;
         write_key = uiNext;
       }
@@ -1973,7 +1973,7 @@ void setdirectory(const char *szAppPath)
 
   // Trim trailing slashes
   size_t lenLocalDir = strlen(szLocalDir);
-  while (lenLocalDir > 0 && szLocalDir[lenLocalDir - 1] == '/' || szLocalDir[lenLocalDir - 1] == '\\') {
+  while (lenLocalDir > 0 && (szLocalDir[lenLocalDir - 1] == '/' || szLocalDir[lenLocalDir - 1] == '\\')) {
     lenLocalDir -= 1;
   }
   szLocalDir[lenLocalDir] = '\0';
@@ -2150,7 +2150,7 @@ void mini_prt_string(tBlockHeader *pBlockHeader, const char *szStr, int iX, int 
     if (*szStr) {
       if (*szStr != '\n') {
         iSavedYPos = iYPos;
-        if (*szStr == -118)
+        if ((uint8)*szStr == 0x8A)
           iYPos -= 2;
         prt_letter(pBlockHeader, *szStr, &iXPos, &iYPos, -1);
         iYPos = iSavedYPos;
@@ -2178,7 +2178,7 @@ void mini_prt_string_rev(tBlockHeader *pBlockHeader, const char *szText, int iX,
     if (*szText) {
       if (*szText != 10) {
         iSavedYPos = piYPos;
-        if (*szText == -118)
+        if ((uint8)*szText == 0x8A)
           piYPos -= 2;
         prt_letter_rev(pBlockHeader, *szText, &piXPos, &piYPos, -1);
         piYPos = iSavedYPos;
@@ -2219,7 +2219,7 @@ void mini_prt_right(tBlockHeader *pBlockHeader, const char *szText, int iX, int 
     if (*pCurrChar) {
       if (*pCurrChar != '\n') {
         iSavedYPos = iYPos;
-        if (*pCurrChar == -118)
+        if ((uint8)*pCurrChar == 0x8A)
           iYPos -= 2;
         prt_letter(pBlockHeader, *pCurrChar, &iXPos, &iYPos, -1);
         iYPos = iSavedYPos;
@@ -2261,7 +2261,7 @@ void mini_prt_centre(tBlockHeader *pBlockHeader, const char *szStr, int iX, int 
     if (*pCharItr) {                                           // Skip newline characters (not rendered in mini font)
       if (*pCharItr != '\n') {
         iSavedYPos = iYPos;                     // Save Y position for restoration after character rendering
-        if (*pCharItr == -118)                // Special character 0x8A (138): render 2 pixels higher (superscript effect)
+        if ((uint8)*pCharItr == 0x8A)                // Special character 0x8A (138): render 2 pixels higher (superscript effect)
           iYPos -= 2;
         prt_letter(pBlockHeader, *pCharItr, &iXPos, &iYPos, -1);// Render character using prt_letter with ascii_conv3 font (fontType=-1)
         iYPos = iSavedYPos;                     // Restore Y position after character rendering

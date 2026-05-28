@@ -162,7 +162,7 @@ tColor palette[256];        //00100DD0
 float tsin[16384];          //001010F0
 float ptan[16384];          //001110F0
 float tcos[16384];          //00121128
-char buffer[128];           //00131228
+char buffer[1024];          //00131228
 uint8 blank_line[640];      //001312A8
 int p_joyk1[2];             //0013E048
 int p_joyk2[2];             //0013E050

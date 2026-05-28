@@ -1729,7 +1729,7 @@ void ROLLERGetAudioInfo()
       "/dev/dvd"
   };
 
-  for (int i = 0; i < sizeof(szCDDevices) / sizeof(szCDDevices[0]); i++) {
+  for (size_t i = 0; i < sizeof(szCDDevices) / sizeof(szCDDevices[0]); i++) {
     g_iCDHandle = open(szCDDevices[i], O_RDONLY | O_NONBLOCK);
     if (g_iCDHandle >= 0) {
       struct cdrom_tochdr tochdr;
