@@ -258,12 +258,14 @@ static void local_input_tick(void)
 
   readuserdata(0);
   last_inp[0] = user_inp;
-  copy_multiple[writeptr][player1_car].uiFullData = user_inp;
+  copy_multiple[writeptr][player1_car].data.unInput = GET_LOWORD(user_inp);
+  copy_multiple[writeptr][player1_car].data.unFlags = GET_HIWORD(user_inp);
 
   if (player_type == 2) {
     readuserdata(1);
     last_inp[1] = user_inp;
-    copy_multiple[writeptr][player2_car].uiFullData = user_inp;
+    copy_multiple[writeptr][player2_car].data.unInput = GET_LOWORD(user_inp);
+    copy_multiple[writeptr][player2_car].data.unFlags = GET_HIWORD(user_inp);
   }
 
   writeptr = (writeptr + 1) % REPLAY_BUFFER_SIZE;
@@ -293,19 +295,21 @@ static void network_master_tick(void)
     for (int i = 0; i < numcars; i++) {
       uint16 unFlags = copy_multiple[writeptr][i].data.unFlags;
 
-      if (copy_multiple[writeptr][i].uiFullData & 0x4000000)
+      if (unFlags & FLAG_DISCONNECT)
         unFlags ^= FLAG_DISCONNECT;
-      if (copy_multiple[writeptr][i].uiFullData & 0x8000000)
+      if (unFlags & FLAG_MASTER_CHANGE)
         unFlags = (unFlags ^ FLAG_MASTER_CHANGE) | FLAG_DISCONNECT;
       copy_multiple[writeptr][i].data.unFlags = unFlags;
     }
 
     if (SDL_GetAtomicInt(&iNetworkMasterInputValid)) {
-      copy_multiple[writeptr][player1_car].uiFullData =
-        (uint32)SDL_GetAtomicInt(&iNetworkMasterInput);
+      uint32 uiNetInput = (uint32)SDL_GetAtomicInt(&iNetworkMasterInput);
+      copy_multiple[writeptr][player1_car].data.unInput = GET_LOWORD(uiNetInput);
+      copy_multiple[writeptr][player1_car].data.unFlags = GET_HIWORD(uiNetInput);
     } else {
       readuserdata(0);
-      copy_multiple[writeptr][player1_car].uiFullData = user_inp;
+      copy_multiple[writeptr][player1_car].data.unInput = GET_LOWORD(user_inp);
+      copy_multiple[writeptr][player1_car].data.unFlags = GET_HIWORD(user_inp);
       last_inp[0] = user_inp;
     }
 
@@ -380,7 +384,7 @@ static int network_slave_tick(void)
 
   iSlotsReceived = receive_multiple();
 
-  if (copy_multiple[(writeptr - 1 + REPLAY_BUFFER_SIZE) % REPLAY_BUFFER_SIZE][player_to_car[master]].uiFullData & 0x8000000) {
+  if (copy_multiple[(writeptr - 1 + REPLAY_BUFFER_SIZE) % REPLAY_BUFFER_SIZE][player_to_car[master]].data.unFlags & FLAG_MASTER_CHANGE) {
     read_check = -1;
     write_check = -1;
     memset(player_checks, -1, sizeof(player_checks));
@@ -398,11 +402,11 @@ static int network_slave_tick(void)
   }
 
   for (int i = 0; i < numcars; i++) {
-    uint32 uiData = copy_multiple[(writeptr - 1 + REPLAY_BUFFER_SIZE) % REPLAY_BUFFER_SIZE][i].uiFullData;
+    uint16 unFlags = copy_multiple[(writeptr - 1 + REPLAY_BUFFER_SIZE) % REPLAY_BUFFER_SIZE][i].data.unFlags;
 
-    if (uiData & 0x10000000)
+    if (unFlags & FLAG_FINISHED)
       network_error = 0;
-    if (uiData & 0x4000000) {
+    if (unFlags & FLAG_DISCONNECT) {
       net_players[car_to_player[i]] = 0;
       network_timeout = frames;
       memset(player_checks, -1, sizeof(player_checks));
@@ -461,8 +465,8 @@ static void network_orphan_tick(void)
 
   readuserdata(0);
   last_inp[0] = user_inp;
-  copy_multiple[writeptr][player1_car].uiFullData = user_inp;
-  copy_multiple[writeptr][player1_car].data.unFlags |= FLAG_DISCONNECT;
+  copy_multiple[writeptr][player1_car].data.unInput = GET_LOWORD(user_inp);
+  copy_multiple[writeptr][player1_car].data.unFlags = GET_HIWORD(user_inp) | FLAG_DISCONNECT;
 
   writeptr = (writeptr + 1) % REPLAY_BUFFER_SIZE;
 }

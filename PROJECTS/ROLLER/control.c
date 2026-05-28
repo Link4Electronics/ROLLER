@@ -714,7 +714,7 @@ static void control_ticks(int iMaxTicks, int iReturnIfNoTick)
           Car[iCar].fPower = 0.0;
         }
         if (human_control[iCar]) {                                       // Network sync request: reset car to neutral state
-          if ((copy_multiple[readptr][iCar].uiFullData & 0x10000000) != 0) {
+          if ((copy_multiple[readptr][iCar].data.unFlags & FLAG_FINISHED) != 0) {
             iCar_1 = iCar;
             Car[iCar_1].byGearAyMax = -1;
             Car[iCar_1].fPower = 0.0;
@@ -726,7 +726,7 @@ static void control_ticks(int iMaxTicks, int iReturnIfNoTick)
               fudge_wait = ((int16)readptr + 1) & 0x1FF;
             stopallsamples();
           }
-          if ((copy_multiple[readptr][iCar].uiFullData & 0x4000000) != 0)// Network player quit: cleanup and handle disconnection
+          if ((copy_multiple[readptr][iCar].data.unFlags & FLAG_DISCONNECT) != 0)// Network player quit: cleanup and handle disconnection
           {
             memset(player_checks, -1, sizeof(player_checks));
             read_check = 0;
