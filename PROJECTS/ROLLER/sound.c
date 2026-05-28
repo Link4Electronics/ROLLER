@@ -3790,25 +3790,13 @@ void reinitmusic()
 //0003F110
 int getcompactedfilelength(const char *szFile)
 {
-  FILE *pFile; // esi
-  int iLength; // [esp+0h] [ebp-14h] BYREF
-
+  FILE *pFile;
+  uint8 buf[4];
   pFile = ROLLERfopen(szFile, "rb");
   if (!pFile) ErrorBoxExit("Could not open file %s", szFile);
-  fread(&iLength, 1u, 4u, pFile);
+  fread(buf, 1, 4, pFile);
   fclose(pFile);
-  {
-    int iSwapped = (int)__builtin_bswap32((uint32)iLength);
-    /* Data-driven heuristic: pick the value that looks like a reasonable
-       decompressed size (100..2 MB). This works even if roller_is_big_endian()
-       gives a wrong answer on an unusual compiler. */
-    int iNativeOk = (iLength >= 100 && iLength <= 0x200000);
-    int iSwappedOk = (iSwapped >= 100 && iSwapped <= 0x200000);
-    if (iNativeOk && !iSwappedOk) iLength = iLength;
-    else if (iSwappedOk && !iNativeOk) iLength = iSwapped;
-    else if (roller_is_big_endian()) iLength = iSwapped;
-  }
-  return iLength;
+  return (int)read_le32(buf);
 }
 
 //-------------------------------------------------------------------------------------------------

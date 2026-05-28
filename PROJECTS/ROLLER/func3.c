@@ -5788,34 +5788,21 @@ void display_block(uint8 *pDest, tBlockHeader *pSrc, int iBlockIdx, int iX, int 
 
 void swap_block_headers(uint8 *pBuf, uint32 uiFileLength)
 {
-  if (!roller_is_big_endian()) return;
-  if (!pBuf || uiFileLength < (uint32)sizeof(tBlockHeader)) return;
-  uint32 raw_offset;
-  memcpy(&raw_offset, pBuf + 8, sizeof(raw_offset));
-  uint32 actual_offset = __builtin_bswap32(raw_offset);
-  uint32 iHeaderCount = actual_offset / (uint32)sizeof(tBlockHeader);
-  if (iHeaderCount < 1 || iHeaderCount > 256) {
-    iHeaderCount = uiFileLength / (uint32)sizeof(tBlockHeader);
-    if (iHeaderCount > 256) iHeaderCount = 256;
-    if (iHeaderCount < 1) return;
-  }
-  uint32 iMaxHeaderBytes = actual_offset;
-  if (iMaxHeaderBytes > uiFileLength) iMaxHeaderBytes = uiFileLength;
-  for (uint32 i = 0; i < iHeaderCount; i++) {
-    uint32 iEntryOff = i * (uint32)sizeof(tBlockHeader);
-    if (iEntryOff + (uint32)sizeof(tBlockHeader) > iMaxHeaderBytes) break;
-    uint32 fields[3];
-    memcpy(fields, pBuf + iEntryOff, sizeof(fields));
-    fields[0] = __builtin_bswap32(fields[0]);
-    fields[1] = __builtin_bswap32(fields[1]);
-    fields[2] = __builtin_bswap32(fields[2]);
-    if (fields[0] == 0 || fields[0] > 256 ||
-        fields[1] == 0 || fields[1] > 256 ||
-        fields[2] < iEntryOff + (uint32)sizeof(tBlockHeader) ||
-        fields[2] + (uint32)fields[0] * (uint32)fields[1] > uiFileLength) {
-      break;
-    }
-    memcpy(pBuf + iEntryOff, fields, sizeof(fields));
+  if (!pBuf || uiFileLength < 12) return;
+  uint32 off = 0;
+  for (uint32 i = 0; i < 256; i++) {
+    if (off + 12 > uiFileLength) break;
+    uint32 width = read_le32(pBuf + off);
+    uint32 height = read_le32(pBuf + off + 4);
+    uint32 dataOff = read_le32(pBuf + off + 8);
+    if (width == 0 || height == 0 || dataOff == 0) break;
+    if (width > 256 || height > 256) break;
+    if (dataOff >= uiFileLength) break;
+    if ((uint64)dataOff + (uint64)width * (uint64)height > uiFileLength) break;
+    memcpy(pBuf + off, &width, 4);
+    memcpy(pBuf + off + 4, &height, 4);
+    memcpy(pBuf + off + 8, &dataOff, 4);
+    off += 12;
   }
 }
 

@@ -219,6 +219,12 @@ typedef struct
 
 //-------------------------------------------------------------------------------------------------
 
+// Read a 32-bit little-endian value from an unaligned byte pointer.
+// Works on any host endianness without detection.
+static inline uint32 read_le32(const uint8 *p) {
+  return (uint32)p[0] | ((uint32)p[1] << 8) | ((uint32)p[2] << 16) | ((uint32)p[3] << 24);
+}
+
 // Byte-order detection: returns 1 if this platform is big-endian.
 // Uses compile-time macros when available; falls back to runtime detection.
 // Define ROLLER_FORCE_BE=1 or ROLLER_FORCE_LE=1 in CFLAGS to override.
