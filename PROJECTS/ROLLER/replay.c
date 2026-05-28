@@ -930,8 +930,8 @@ void DoReplayData()
               // Convert car speed (take absolute value) and pack with lives/status data
               //_CHP();
               iConversionBuffer = (int)fabs(pCar->fFinalSpeed);
-              replayData.nSpeedAndStatus = iConversionBuffer | (((char)pCar->byLives + 2) << 10);
-              // Pack status flags into high byte
+replayData.nSpeedAndStatus = iConversionBuffer | (((int8)pCar->byLives + 2) << 10);
+               // Pack status flags into high byte
               if ( (pCar->byStatusFlags & 2) != 0 )
                 replayData.nSpeedAndStatus |= 0x2000u;
                 //HIBYTE(nSpeedAndStatus) |= 0x20u;
@@ -2080,7 +2080,7 @@ void Rassemble()
   uint8 *szCarDataPtr2; // ebx
   int iCarLoop2; // edx
   int iCarIndex2; // ecx
-  char byCarData; // al
+  int8 byCarData; // al
   uint8 byDirection; // ah
   uint8 byProcessedData; // al
   int iCarCount; // esi
@@ -2261,7 +2261,7 @@ void Rassemble()
                     iTempData = szCarDataPtr[3];
                     //iTempData = (uint8)HIBYTE(*(_DWORD *)szCarDataPtr);
                     tempBuffer[4] = iTempData;
-                    if ((char)iTempData * (char)carVelocityData[iCarLoop1] >= 0)
+                    if ((int8)iTempData * (int8)carVelocityData[iCarLoop1] >= 0)
                       carVelocityData[iCarLoop1 + 16] = 1;
                     else
                       carVelocityData[iCarLoop1 + 16] = -1;
@@ -2289,7 +2289,7 @@ void Rassemble()
                   ++iCarIndex2;
                   carVelocityData[iCarLoop2++] = byProcessedData;
                   iCarCount = numcars;
-                  *(int *)(szCarDataPtr2 - 30) = ((char)byProcessedData << 24) | (*(int *)(szCarDataPtr2 - 30) & 0xFFFFFF);
+                  *(int *)(szCarDataPtr2 - 30) = ((int8)byProcessedData << 24) | (*(int *)(szCarDataPtr2 - 30) & 0xFFFFFF);
                 } while (iCarLoop2 < iCarCount);
               }
               iDataWritten = -1;

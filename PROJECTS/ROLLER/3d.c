@@ -1378,7 +1378,7 @@ void frontend_time_trial_results_update(void)
 
   while (iFrontendTimeTrialCarIdx < numcars) {
     int iCarIdx = iFrontendTimeTrialCarIdx++;
-    if (human_control[iCarIdx] && (char)Car[iCarIdx].byLap > 1) {
+    if (human_control[iCarIdx] && (int8)Car[iCarIdx].byLap > 1) {
       TimeTrialsEnter(iCarIdx);
       iFrontendTimeTrialScreenActive = -1;
       return;

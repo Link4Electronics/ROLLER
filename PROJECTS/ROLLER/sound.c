@@ -2134,7 +2134,7 @@ void analysespeechsamples()
         pszText = &language_buffer[2240];
         goto LABEL_60;
       case 0x15:
-        if ((char)Car[Victim].byLives <= 0)   // Case 0x15: Handle player elimination/death announcement
+        if ((int8)Car[Victim].byLives <= 0)   // Case 0x15: Handle player elimination/death announcement
           pszMessage = &language_buffer[1984];
         else
           pszMessage = &language_buffer[1920];

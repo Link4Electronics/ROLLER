@@ -148,7 +148,7 @@ void humancar(int iCarIdx)
   if (racers - 1 == finishers && Car[iCarIdx_1].byLap < NoOfLaps && fabs(Car[iCarIdx_1].fFinalSpeed) == 0 && competitors > 1)// Handle race finish condition: play finish sounds and mark player as finished
   {
     if (player1_car == iCarIdx_1 || player2_car == iCarIdx_1) {
-      if ((char)Car[iCarIdx_1].byLives > 0)
+      if ((int8)Car[iCarIdx_1].byLives > 0)
         speechsample(SOUND_SAMPLE_RUBBISH, 0x8000, 18, iCarIdx_1);// SOUND_SAMPLE_RUBBISH
       speechsample(SOUND_SAMPLE_RACEOVER, 0x8000, 18, iCarIdx_1);  // SOUND_SAMPLE_RACEOVER
     }
@@ -428,7 +428,7 @@ void GoUpGear(tCar *pCar)
 
   iCarDesignIdx = pCar->byCarDesignIdx;         // Get car design index and engine data
   pEngineData = &CarEngines.engines[iCarDesignIdx];
-  byGearAyMax = (char)pCar->byGearAyMax;
+  byGearAyMax = (int8)pCar->byGearAyMax;
   if (byGearAyMax < pEngineData->iNumGears - 1)// Check if car can upshift (not already in top gear)
   {
     fHealthFactor = (pCar->fHealth + 34.0f) * 0.01f;// Calculate health factor (0-1) based on car damage, capped at 1.0
@@ -499,7 +499,7 @@ void GoDownGear(tCar *pCar, int iUseAutoLogic)
   pEngineData = &CarEngines.engines[iCarDesignIdx];
   if (fHealthFactor > 1.0)
     fHealthFactor = 1.0;
-  iGearAyMax = (char)pCar->byGearAyMax;
+  iGearAyMax = (int8)pCar->byGearAyMax;
   if (iGearAyMax > -2)                       // Check if car can downshift (not already in lowest gear -2)
   {
     iTargetGear = iGearAyMax - 1;              // Calculate target gear (current gear - 1)
@@ -1208,7 +1208,7 @@ void Accelerate(tCar *pCar)
     if (fHealthFactor > 1.0)
       fHealthFactor = 1.0;
     fPower = pCar->fPower;
-    iGearAyMax = (char)pCar->byGearAyMax;
+    iGearAyMax = (int8)pCar->byGearAyMax;
     if (pCar->fRPMRatio >= 1.0)               // Check for redline condition (RPM ratio >= 1.0)
     {
       pCar->fWheelSpinFactor = 1.0;             // Redline: limit acceleration and apply engine damage for over-revving
@@ -1409,7 +1409,7 @@ void Decelerate(tCar *pCar)
   fBaseSpeed = pCar->fBaseSpeed;
   if (fHealthFactor > 1.0)
     fHealthFactor = 1.0;
-  byGearAyMax = (char)pCar->byGearAyMax;
+  byGearAyMax = (int8)pCar->byGearAyMax;
   pSpds = pEngineData->pSpds;
   if (byGearAyMax < 0)                        // Handle reverse gear: calculate base speed using RPM ratio
     fBaseSpeed = pCar->fRPMRatio * *pEngineData->pSpds * fHealthFactor;
@@ -1556,7 +1556,7 @@ void FreeWheel(tCar *pCar)
   pCar->iEngineState = 8;
   fHealthFactor = (pCar->fHealth + 34.0f) * 0.01f;// Calculate health factor (0-1) based on car damage, capped at 1.0
   iCarDesignIdx = pCar->byCarDesignIdx;
-  iGearAyMax = (char)pCar->byGearAyMax;
+  iGearAyMax = (int8)pCar->byGearAyMax;
   fBaseSpeed = pCar->fBaseSpeed;
   pEngineData = &CarEngines.engines[iCarDesignIdx];
   if (fHealthFactor > 1.0)
@@ -2043,10 +2043,10 @@ void updatecar2(tCar *pCar)
       iLastValidChunk = Car[iCarArrayIdx].iLastValidChunk;
       if (iLastValidChunk < 3 || TRAK_LEN - 4 < iLastValidChunk)
         break;
-      if (Car[iCarArrayIdx].iLastValidChunk + TRAK_LEN * (char)Car[iCarArrayIdx].byLapNumber > iLeaderProgress)// Calculate total progress: chunk + lap * track_length
+      if (Car[iCarArrayIdx].iLastValidChunk + TRAK_LEN * (int8)Car[iCarArrayIdx].byLapNumber > iLeaderProgress)// Calculate total progress: chunk + lap * track_length
       {
         iLeaderCarIdx = iCarLoopIdx;
-        iLeaderProgress = Car[iCarArrayIdx].iLastValidChunk + TRAK_LEN * (char)Car[iCarArrayIdx].byLapNumber;
+        iLeaderProgress = Car[iCarArrayIdx].iLastValidChunk + TRAK_LEN * (int8)Car[iCarArrayIdx].byLapNumber;
       }
       ++iCarLoopIdx;
       ++iCarArrayIdx;
@@ -2056,11 +2056,11 @@ void updatecar2(tCar *pCar)
     iLeaderValidationFlag = 0;
   }
 LABEL_10:
-  if (iLeaderCarIdx != pCar->iDriverIdx && Car[iLeaderCarIdx].iControlType == 3 && (char)Car[iLeaderCarIdx].byLives > 0 && iLeaderValidationFlag) {
+  if (iLeaderCarIdx != pCar->iDriverIdx && Car[iLeaderCarIdx].iControlType == 3 && (int8)Car[iLeaderCarIdx].byLives > 0 && iLeaderValidationFlag) {
     iLeaderChunk = Car[iLeaderCarIdx].nCurrChunk == -1 ? Car[iLeaderCarIdx].iLastValidChunk : Car[iLeaderCarIdx].nCurrChunk;
-    iLeaderProgressTotal = TRAK_LEN * (char)Car[iLeaderCarIdx].byLapNumber + iLeaderChunk;
+    iLeaderProgressTotal = TRAK_LEN * (int8)Car[iLeaderCarIdx].byLapNumber + iLeaderChunk;
     if (lastsample < -18) {
-      iPlayerProgress = TRAK_LEN + pCar->nCurrChunk + TRAK_LEN * (char)pCar->byLapNumber;
+      iPlayerProgress = TRAK_LEN + pCar->nCurrChunk + TRAK_LEN * (int8)pCar->byLapNumber;
       if (pCar->byLappedStatus) {
         if (iLeaderProgressTotal >= iPlayerProgress - 1)
           goto LABEL_30;
@@ -2093,7 +2093,7 @@ LABEL_30:
   iThisDriverIdx = pCar->iDriverIdx;
   if (player1_car == iThisDriverIdx || player2_car == iThisDriverIdx) {
     iPitLaneFlag = 0;
-    if ((char)pCar->byLapNumber == NoOfLaps && TRAK_LEN - pCar->nCurrChunk < 200)
+    if ((int8)pCar->byLapNumber == NoOfLaps && TRAK_LEN - pCar->nCurrChunk < 200)
       iPitLaneFlag = -1;
     if (death_race)
       iPitLaneFlag = -1;
@@ -2258,12 +2258,12 @@ LABEL_45:
       if (fAbsoluteSpeed >= 100.0) {
         while (fAnimationSpeed < 0.0)
           fAnimationSpeed = fAnimationSpeed + 300.0f;
-        if ((char)pCar->byWheelAnimationFrame > 3)
+        if ((int8)pCar->byWheelAnimationFrame > 3)
           pCar->byWheelAnimationFrame = 2;
       } else {
         while (fAnimationSpeed < 0.0)
           fAnimationSpeed = fAnimationSpeed + 50.0f;
-        if ((char)pCar->byWheelAnimationFrame > 1)
+        if ((int8)pCar->byWheelAnimationFrame > 1)
           pCar->byWheelAnimationFrame = 0;
       }
       pCar->fLastAnimationSpeed = fAnimationSpeed;
@@ -3085,7 +3085,7 @@ LABEL_493:
     checkplacement(pCar);
   }
 LABEL_502:
-  if (!pCar->iControlType && pCar->pos.fZ < (double)GroundLevel[pCar->iLastValidChunk] && (char)pCar->byLives > 0) {                                             // Handle fall damage and car landing after being airborne
+  if (!pCar->iControlType && pCar->pos.fZ < (double)GroundLevel[pCar->iLastValidChunk] && (int8)pCar->byLives > 0) {                                             // Handle fall damage and car landing after being airborne
     if (death_race)
       dFallDamage = fabs(pCar->direction.fZ) * 0.05 * 4.0;
     else
@@ -3260,7 +3260,7 @@ void check_crossed_line(tCar *pCar)
               iDriverIdx3 = pCar->iDriverIdx;
               if (player1_car == iDriverIdx3 || player2_car == iDriverIdx3)// Handle finish sounds for player cars based on position
               {
-                if ((char)pCar->byLives > 0) {
+                if ((int8)pCar->byLives > 0) {
                   byRacePosition = pCar->byRacePosition;
                   if (byRacePosition) {
                     if (byRacePosition >= 3u) {
@@ -3422,7 +3422,7 @@ void check_crossed_line(tCar *pCar)
             if (iHumanControl2)
               ++human_finishers;
             iDriverIdx9 = pCar->iDriverIdx;
-            if ((player1_car == iDriverIdx9 || player2_car == iDriverIdx9) && (char)pCar->byLives > 0) {
+            if ((player1_car == iDriverIdx9 || player2_car == iDriverIdx9) && (int8)pCar->byLives > 0) {
               byRacePos3 = pCar->byRacePosition;
               if (byRacePos3) {
                 if (byRacePos3 >= 3u) {
@@ -3455,7 +3455,7 @@ void check_crossed_line(tCar *pCar)
             if (v44)
               ++human_finishers;
             iDriverIdx11 = pCar->iDriverIdx;
-            if ((player1_car == iDriverIdx11 || player2_car == iDriverIdx11) && (char)pCar->byLives > 0) {
+            if ((player1_car == iDriverIdx11 || player2_car == iDriverIdx11) && (int8)pCar->byLives > 0) {
               byRacePos4 = pCar->byRacePosition;
               if (byRacePos4) {
                 if (byRacePos4 >= 3u) {
@@ -3601,8 +3601,8 @@ void checkplacement(tCar *pCar)
     goto LABEL_38;
   }
   iPlacementResult = 0;
-  if ((network_on || (char)pCar->byLives > 0 || lastsample >= -144 || pCar->nDeathTimer >= -64) && (!network_on || (char)pCar->byLives > 0 || pCar->nDeathTimer >= 0)) {                                             // Handle respawn for dead cars (health=0, has lives left)
-    if (pCar->nDeathTimer < 0 && (char)pCar->byLives > 0) {
+  if ((network_on || (int8)pCar->byLives > 0 || lastsample >= -144 || pCar->nDeathTimer >= -64) && (!network_on || (int8)pCar->byLives > 0 || pCar->nDeathTimer >= 0)) {                                             // Handle respawn for dead cars (health=0, has lives left)
+    if (pCar->nDeathTimer < 0 && (int8)pCar->byLives > 0) {
       iRespawnRand = ROLLERrandRaw();                    // Randomly select a respawn stop position
       iPlacementResult = -1;
       iCarLoopIdx = 0;
@@ -3610,7 +3610,7 @@ void checkplacement(tCar *pCar)
       if (numcars > 0) {
         iCarArrayIdx2 = 0;
         do {
-          if (iCarLoopIdx != pCar->iDriverIdx && (char)Car[iCarArrayIdx2].byLives > 0 && Car[iCarArrayIdx2].iControlType == 3) {
+          if (iCarLoopIdx != pCar->iDriverIdx && (int8)Car[iCarArrayIdx2].byLives > 0 && Car[iCarArrayIdx2].iControlType == 3) {
             iTempChunk = Car[iCarArrayIdx2].nCurrChunk;
             if ((TrakColour[iTempChunk][Car[iCarArrayIdx2].iLaneType] & SURFACE_FLAG_PIT) != 0) {
               if (iTempChunk == iRespawnChunk)
@@ -3769,7 +3769,7 @@ void checkplacement(tCar *pCar)
     }
   }
 LABEL_113:
-  if (iPlacementResult && (char)pCar->byLives > 0)// Initialize car state after successful placement
+  if (iPlacementResult && (int8)pCar->byLives > 0)// Initialize car state after successful placement
   {
     pCar->pos.fX = 0.0;
     pCar->pos.fZ = 0.0;
@@ -4602,7 +4602,7 @@ void findnearcarsforce(tCar *pCar, int *piLeftCarIdx, float *pfLeftTime, int *pi
     do {
       iDriverIdx = pCar->iDriverIdx;
       TRAK_LEN = iTrakLen;
-      if (iDriverIdx == iCarLoopIdx || (char)Car[iCarIdx].byLives <= 0)
+      if (iDriverIdx == iCarLoopIdx || (int8)Car[iCarIdx].byLives <= 0)
         goto LABEL_67;
       iChunkDiff = Car[iCarIdx].nCurrChunk - pCar->nCurrChunk;
       iNormalizedChunkDiff = iChunkDiff;
@@ -4941,7 +4941,7 @@ void autocar2(tCar *pCar)
         ++iCarArrayIdx;
       } while (iCarIdx < numcars);
     }
-    iPositionDifference = (char)pCar->byLapNumber * TRAK_LEN + pCar->nCurrChunk - (TRAK_LEN * (char)Car[iHumanCarIdx].byLapNumber + Car[iHumanCarIdx].nCurrChunk);// Calculate position difference between AI car and leading human player
+    iPositionDifference = (int8)pCar->byLapNumber * TRAK_LEN + pCar->nCurrChunk - (TRAK_LEN * (int8)Car[iHumanCarIdx].byLapNumber + Car[iHumanCarIdx].nCurrChunk);// Calculate position difference between AI car and leading human player
     if (iPositionDifference < 80) {
       if (iPositionDifference <= 20) {                                         // Special logic for car design 13 (boss car) - reduce speed when near human player
       LABEL_18:
@@ -5038,7 +5038,7 @@ LABEL_24:
   iCurrentChunk = pCar->nCurrChunk;
   iPitZoneFlag = TrakColour[iCurrentChunk][1] & SURFACE_FLAG_PIT_ZONE;
   iLastLapFlag = 0;
-  if ((char)pCar->byLapNumber == NoOfLaps && TRAK_LEN - iCurrentChunk < 200)
+  if ((int8)pCar->byLapNumber == NoOfLaps && TRAK_LEN - iCurrentChunk < 200)
     iLastLapFlag = -1;
   if (death_race) {
     iLastLapFlag = -1;
@@ -7490,7 +7490,7 @@ int findcardistance(int iCarIdx, float fMaxDistance)
   {
     iCurrentCarIdx = 0;
     do {                                           // Skip self, dead cars, non-AI cars, and stunned cars
-      if (iCarCounter != iCarIdx && (char)Car[iCurrentCarIdx].byLives > 0 && Car[iCurrentCarIdx].iControlType == 3 && !Car[iCurrentCarIdx].iStunned) {
+      if (iCarCounter != iCarIdx && (int8)Car[iCurrentCarIdx].byLives > 0 && Car[iCurrentCarIdx].iControlType == 3 && !Car[iCurrentCarIdx].iStunned) {
         dCurrentCarPos = (double)(averagesectionlen * Car[iCurrentCarIdx].nCurrChunk) + Car[iCurrentCarIdx].pos.fX;// Calculate absolute track position of current car
         fAdjustedCarPos = (float)dCurrentCarPos;
         if (dCurrentCarPos < fReferenceCarPos)

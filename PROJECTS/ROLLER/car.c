@@ -471,7 +471,7 @@ void placecars()
         Car[iViewCarIdx].byGearAyMax = byGearAyMax;
         Car[iViewCarIdx].fFinalSpeed = pEngine->pSpds[byGearAyMax];// Set max speed from engine data
         Car[iViewCarIdx].fBaseSpeed = Car[iViewCarIdx].fFinalSpeed;
-        dPower = calc_pow(Car[iViewCarIdx].byCarDesignIdx, (char)Car[iViewCarIdx].byGearAyMax, Car[iViewCarIdx].fRPMRatio);// Calculate power for this car configuration
+        dPower = calc_pow(Car[iViewCarIdx].byCarDesignIdx, (int8)Car[iViewCarIdx].byGearAyMax, Car[iViewCarIdx].fRPMRatio);// Calculate power for this car configuration
         Car[iViewCarIdx].fSpeedOverflow = 0;
         Car[iViewCarIdx].byThrottlePressed = -1;
         Car[iViewCarIdx].byEngineStartTimer = 36;

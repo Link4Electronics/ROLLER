@@ -581,8 +581,8 @@ void StoreResult()
       result_best[iCarIdx] = Car[iCarIdx].fBestLapTime;
       dResultTime = Car[iCarIdx].fTotalRaceTime;
       result_kills[iCarIdx] = Car[iCarIdx].byKills;
-      result_lap[iCarIdx] = (char)Car[iCarIdx].byLap;
-      result_lives[iCarIdx] = (char)Car[iCarIdx].byLives;
+      result_lap[iCarIdx] = (int8)Car[iCarIdx].byLap;
+      result_lives[iCarIdx] = (int8)Car[iCarIdx].byLives;
       byCarDesignIdx = Car[iCarIdx].byCarDesignIdx;
       result_time[iCarIdx] = (float)dResultTime;
       iOffset += 4;
@@ -1067,7 +1067,7 @@ void TimeTrialsEnter(int iDriverIdx)
   iTimeOffset = 24 * iCarIdx + 4;
 
   // Loop through each completed lap and display lap number and time
-  while (iLapNumber < (char)Car[iCarIndex].byLap) {
+  while (iLapNumber < (int8)Car[iCarIndex].byLap) {
     sprintf(buffer, "%s %i", &language_buffer[256], iLapNumber);// Display lap number text
     front_text(front_vga[2], buffer, font2_ascii, font2_offsets, 220, iLapTextY, 0x8Fu, 0);
 

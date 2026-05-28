@@ -877,7 +877,7 @@ void test_panel(uint8 *pScrBuf, int iPlayerCarIdx)
       byDamageBarPtr += winw;
     }
     mini_prt_right(rev_vga[0], &language_buffer[256], winw - 14, 4);
-    byLap = (char)Car[iCarIndex_1].byLap;
+    byLap = (int8)Car[iCarIndex_1].byLap;
     if (byLap <= 0)
       byLap = 1;
     if (byLap > 99)
@@ -893,7 +893,7 @@ void test_panel(uint8 *pScrBuf, int iPlayerCarIdx)
       do {
         sprintf(buffer, "%s %i", &language_buffer[256], iLapNumber);
         mini_prt_string(rev_vga[0], buffer, 2, iLapTimeYPos);
-        if (iLapNumber < (char)Car[uiCarDataOffset / 0x134].byLap) {
+        if (iLapNumber < (int8)Car[uiCarDataOffset / 0x134].byLap) {
           dLapTime = trial_times[iTrialTimeIdx / sizeof(float)] * 100.0;
           //dLapTime = *(float *)((char *)trial_times + iTrialTimeIdx) * 100.0;
           //_CHP();
@@ -919,7 +919,7 @@ void test_panel(uint8 *pScrBuf, int iPlayerCarIdx)
           //buffer[0] = iTimeMinutes / 10 % 10 + 48;
           //mini_prt_string(rev_vga[0], buffer, 30, iLapTimeYPos);
         }
-        if (iLapNumber == (char)Car[uiCarDataOffset3 / 0x134].byLap) {
+        if (iLapNumber == (int8)Car[uiCarDataOffset3 / 0x134].byLap) {
           dRunningLapTime = Car[uiCarDataOffset3 / 0x134].fRunningLapTime * 100.0;
           //_CHP();
 
@@ -954,7 +954,7 @@ void test_panel(uint8 *pScrBuf, int iPlayerCarIdx)
       sprintf(buffer, "%2i", Car[iCarIndex_1].byRacePosition + 1);
       mini_prt_string(rev_vga[0], buffer, winw - 12, 12);
       mini_prt_right(rev_vga[0], &language_buffer[1472], winw - 14, 20);
-      sprintf(buffer, "%2i", (char)Car[iCarIndex_1].byLives);
+      sprintf(buffer, "%2i", (int8)Car[iCarIndex_1].byLives);
       mini_prt_string(rev_vga[0], buffer, winw - 12, 20);
       scr_size = iSavedScrSize;
     }
@@ -1059,7 +1059,7 @@ void test_panel(uint8 *pScrBuf, int iPlayerCarIdx)
     iLifeIconYPos = 54;
     uiCarDataOffset5 = 308 * iCarIndex_1;
     iKillsDisplayValue = Car[iCarIndex_1].byCarDesignIdx;
-    while (iLifeIconIdx < (char)Car[uiCarDataOffset5 / 0x134].byLives) {                                           // Draw life icons for current car
+    while (iLifeIconIdx < (int8)Car[uiCarDataOffset5 / 0x134].byLives) {                                           // Draw life icons for current car
       if (iKillsDisplayValue >= 8) {
         iKillIconIdx = 8;
         pKillBlockHdr = pLifeIconBlockHdr;
@@ -1094,10 +1094,10 @@ void test_panel(uint8 *pScrBuf, int iPlayerCarIdx)
     iGearCarIdx = iCarIndex_1;
     print_damage(&byScreenPtr[winw * (scr_size << 7 >> 6) + winw - ((80 * scr_size) >> 6)], rev_vga[2], iCarIdx);// Display damage indicator and gear display
     byGearScreenPtr = byScreenPtr;
-    game_render_print_block(g_pGameRenderer, 2, (char)Car[iGearCarIdx].byGearAyMax + 3, &byScreenPtr[winw * ((181 * scr_size) >> 6) + winw - ((14 * scr_size) >> 6)]);
+    game_render_print_block(g_pGameRenderer, 2, (int8)Car[iGearCarIdx].byGearAyMax + 3, &byScreenPtr[winw * ((181 * scr_size) >> 6) + winw - ((14 * scr_size) >> 6)]);
     game_render_print_block(g_pGameRenderer, 2, 19, &byGearScreenPtr[winw * ((21 * scr_size) >> 6) + winw - ((67 * scr_size) >> 6)]);
     pLapBlockHdr = rev_vga[2];
-    iCurrentLap = (char)Car[iGearCarIdx].byLap;
+    iCurrentLap = (int8)Car[iGearCarIdx].byLap;
     pLapDigitBlockHdr = rev_vga[2];
     if (iCurrentLap <= 0)
       iCurrentLap = 1;
@@ -1131,7 +1131,7 @@ void test_panel(uint8 *pScrBuf, int iPlayerCarIdx)
       do {
         sprintf(buffer, "%s %i", &language_buffer[256], iLapNum2);
         mini_prt_string(rev_vga[0], buffer, 8, iLapTimeYPos2);
-        if (iLapNum2 < (char)Car[uiCarDataOffset2 / 0x134].byLap) {
+        if (iLapNum2 < (int8)Car[uiCarDataOffset2 / 0x134].byLap) {
           dLapTime2 = trial_times[iTrialTimeIdx2 / sizeof(float)] * 100.0;
           //dLapTime2 = *(float *)((char *)trial_times + iTrialTimeIdx2) * 100.0;
           //_CHP();
@@ -1156,7 +1156,7 @@ void test_panel(uint8 *pScrBuf, int iPlayerCarIdx)
           //buffer[0] = iTimeMinutes / 10 % 10 + 48;
           //mini_prt_string(rev_vga[0], buffer, 40, iLapTimeYPos2);
         }
-        if (iLapNum2 == (char)Car[uiCarDataOffset4 / 0x134].byLap) {
+        if (iLapNum2 == (int8)Car[uiCarDataOffset4 / 0x134].byLap) {
           dRunningLapTime2 = Car[uiCarDataOffset4 / 0x134].fRunningLapTime * 100.0;// Display current running lap time
           //_CHP();
           int iLapTimeCentiseconds = (int)dRunningLapTime2;

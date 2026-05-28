@@ -301,7 +301,7 @@ void finish_race()
     iCarOrderIdx = 0;
     do {
       iCurrentCarId = carorder[iCarOrderIdx];
-      if (!human_control[iCurrentCarId] && (char)Car[iCurrentCarId].byLives > 0)
+      if (!human_control[iCurrentCarId] && (int8)Car[iCurrentCarId].byLives > 0)
         ++iAiCarCount;
       ++iCarOrderIdx;
       ++iCarCounter;
@@ -624,23 +624,23 @@ void calculate_aheadbehindtime(int iCarIdx, float *pfAheadTime, float *pfBehindT
   float fCurrentCarPosition; // [esp+2Ch] [ebp-18h]
 
   iCurrentCarId = iCarIdx;
-  if ((char)Car[iCurrentCarId].byLives > 0)   // Check if current car is alive, otherwise return -1 for both times
+  if ((int8)Car[iCurrentCarId].byLives > 0)   // Check if current car is alive, otherwise return -1 for both times
   {
     iCurrChunk = Car[iCurrentCarId].nCurrChunk; // Calculate current car's absolute position on track (chunk + lap distance)
     if (iCurrChunk == -1)
       iCurrChunk = Car[iCurrentCarId].iLastValidChunk;
-    fCurrentCarPosition = (float)(averagesectionlen * iCurrChunk + totaltrackdistance * (char)Car[iCarIdx].byLapNumber);
+    fCurrentCarPosition = (float)(averagesectionlen * iCurrChunk + totaltrackdistance * (int8)Car[iCarIdx].byLapNumber);
     if (Car[iCarIdx].nCurrChunk != -1)
       fCurrentCarPosition = fCurrentCarPosition + Car[iCarIdx].pos.fX;
     if (Car[iCarIdx].byRacePosition)          // Calculate time to car ahead (if not in first position)
     {
       //TODO recheck this offset to ensure it is correct
       iAheadCarId = carorder[Car[iCarIdx].byRacePosition - 1];// Get car ahead from race position order
-      if ((char)Car[iAheadCarId].byLives > 0) {
+      if ((int8)Car[iAheadCarId].byLives > 0) {
         nCurrChunk = Car[iAheadCarId].nCurrChunk;
         if (nCurrChunk == -1)
           nCurrChunk = Car[iAheadCarId].iLastValidChunk;
-        fAheadCarPosition = (float)(averagesectionlen * nCurrChunk + totaltrackdistance * (char)Car[iAheadCarId].byLapNumber);// Calculate ahead car's absolute position on track
+        fAheadCarPosition = (float)(averagesectionlen * nCurrChunk + totaltrackdistance * (int8)Car[iAheadCarId].byLapNumber);// Calculate ahead car's absolute position on track
         if (Car[iAheadCarId].nCurrChunk != -1)
           fAheadCarPosition = fAheadCarPosition + Car[iAheadCarId].pos.fX;
         iAheadCarRef = iAheadCarId;
@@ -670,11 +670,11 @@ void calculate_aheadbehindtime(int iCarIdx, float *pfAheadTime, float *pfBehindT
       *pfBehindTime = -1.0;
     } else {
       iBehindCarId = carorder[iRacePosition + 1];// Get car behind from race position order
-      if ((char)Car[iBehindCarId].byLives > 0) {
+      if ((int8)Car[iBehindCarId].byLives > 0) {
         iLastValidChunk = Car[iBehindCarId].nCurrChunk;
         if (iLastValidChunk == -1)
           iLastValidChunk = Car[iBehindCarId].iLastValidChunk;
-        fBehindCarPosition = (float)(averagesectionlen * iLastValidChunk + totaltrackdistance * (char)Car[iBehindCarId].byLapNumber);// Calculate behind car's absolute position and distance/time gap
+        fBehindCarPosition = (float)(averagesectionlen * iLastValidChunk + totaltrackdistance * (int8)Car[iBehindCarId].byLapNumber);// Calculate behind car's absolute position and distance/time gap
         if (Car[iBehindCarId].nCurrChunk != -1)
           fBehindCarPosition = fBehindCarPosition + Car[iBehindCarId].pos.fX;
         iCurrentCarRef = iCarIdx;
@@ -947,7 +947,7 @@ void dodamage(tCar *pCar, float fDamage)
           finishers = iFinishers + 1;
           if (iHumanControl)
             ++human_finishers;
-          if ((iCurrentDriverIdx == player1_car || iCurrentDriverIdx == player2_car) && (char)pCar->byLives > 0)
+          if ((iCurrentDriverIdx == player1_car || iCurrentDriverIdx == player2_car) && (int8)pCar->byLives > 0)
             // SOUND_SAMPLE_RUBBISH
             speechsample(SOUND_SAMPLE_RUBBISH, 0x8000, 18, iCurrentDriverIdx);
         }
@@ -968,7 +968,7 @@ void dodamage(tCar *pCar, float fDamage)
           speechsample(SOUND_SAMPLE_GOTONE, 0x8000, 18, player1_car);
           Victim = pCar->iDriverIdx;
         } else if (player1_car != pCar->iDriverIdx) {
-          if ((char)pCar->byLives <= 0)
+          if ((int8)pCar->byLives <= 0)
             sprintf(buffer, "%s %s", &language_buffer[1984], driver_names[pCar->iDriverIdx]);
           else
             sprintf(buffer, "%s %s", &language_buffer[1920], driver_names[pCar->iDriverIdx]);
@@ -986,7 +986,7 @@ void dodamage(tCar *pCar, float fDamage)
           } else {
             iPlayer2DriverIdx = pCar->iDriverIdx;
             if (player2_car != iPlayer2DriverIdx) {
-              if ((char)pCar->byLives <= 0)
+              if ((int8)pCar->byLives <= 0)
                 sprintf(buffer, "%s %s", &language_buffer[1984], driver_names[iPlayer2DriverIdx]);
               else
                 sprintf(buffer, "%s %s", &language_buffer[1920], driver_names[iPlayer2DriverIdx]);
@@ -1193,7 +1193,7 @@ void changemateto(int iCarIndex, int iNewStrategy)
     iMateCarIndex = iCarIndex - 1;
   else
     iMateCarIndex = iCarIndex + 1;
-  if ((char)Car[iMateCarIndex].byLives > 0 && !human_control[iMateCarIndex])// Check if mate car is alive and AI-controlled
+  if ((int8)Car[iMateCarIndex].byLives > 0 && !human_control[iMateCarIndex])// Check if mate car is alive and AI-controlled
   {                                             // Check if mate already has the requested strategy
     if (iNewStrategy == Car[iMateCarIndex].iSelectedStrategy) {                                           // Play acknowledgment speech when mate already has requested strategy
       // CHEAT_MODE_CLONES
@@ -1675,7 +1675,7 @@ void showmap(uint8 *pScrPtr, int iCarIdx)
     pCarArray = Car;
     do {
       pCurrentCar = pCarArray;
-      if ((char)pCarArray->byLives > 0) {
+      if ((int8)pCarArray->byLives > 0) {
         iCurrChunk = pCarArray->nCurrChunk;     // Calculate car position on track
         if (iCurrChunk == -1) {
           fX = pCarArray->pos.fX;
@@ -1722,7 +1722,7 @@ void showmap(uint8 *pScrPtr, int iCarIdx)
       ++iCarLoop;
     } while (iCarLoop < numcars);
   }
-  if ((char)Car[iCarIdx].byLives > 0 && (Car[iCarIdx].byRacePosition || (frames & 8) != 0)) {
+  if ((int8)Car[iCarIdx].byLives > 0 && (Car[iCarIdx].byRacePosition || (frames & 8) != 0)) {
     pPlayerPixel = &pScrPtr[iPlayerScreenX + iWinWidth * iPlayerScreenY];
     *(pPlayerPixel - 1) = iPlayerColor;
     *(pPlayerPixel - 2) = iPlayerColor;
