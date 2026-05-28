@@ -13,8 +13,8 @@
 #define IS_MACOS
 #endif
 
-#if defined(__powerpc64__) || defined(__ppc64__) || defined(__PPC64__) || defined(_ARCH_PPC64)
-#define IS_PPC64
+#if (defined(__powerpc__) || defined(__powerpc64__) || defined(__ppc__) || defined(__ppc64__) || defined(__PPC__) || defined(__PPC64__) || defined(_ARCH_PPC) || defined(_ARCH_PPC64)) && defined(__BIG_ENDIAN__)
+#define IS_POWERPC_BE
 #endif
 
 //-------------------------------------------------------------------------------------------------

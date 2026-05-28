@@ -218,7 +218,7 @@ int MIDIGetMasterVolume()
 SDL_AudioStream *digi_stream[NUM_DIGI_STREAMS];
 float digi_volume[NUM_DIGI_STREAMS];
 float digi_pan[NUM_DIGI_STREAMS]; // -1.0 (full left) to 1.0 (full right), 0.0 = center
-int digi_generation[NUM_DIGI_STREAMS];
+SDL_AtomicInt digi_generation[NUM_DIGI_STREAMS];
 tSampleData digi_sample_data[NUM_DIGI_STREAMS];
 
 static void DIGILock(void)
@@ -254,6 +254,7 @@ static void DIGIResetSlotState(int index)
   memset(&digi_sample_data[index], 0, sizeof(tSampleData));
   digi_volume[index] = 0.0f;
   digi_pan[index] = 0.0f;
+  SDL_SetAtomicInt(&digi_generation[index], 0);
 }
 
 static void DIGIReleaseStreamSlot(int index)
@@ -321,11 +322,23 @@ static bool DIGISampleDoneUnlocked(int iHandle)
 void DIGI_AudioStreamCallback(void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount)
 {
   tSampleData *data = (tSampleData *)userdata;
-  if (!data || !data->pSample || additional_amount <= 0)
+  if (!data || additional_amount <= 0)
     return;
-  tSampleData sampleData = *data;
   int index = (int)(data - digi_sample_data);
-  float pan = (index >= 0 && index < NUM_DIGI_STREAMS) ? digi_pan[index] : 0.0f;
+  if (index < 0 || index >= NUM_DIGI_STREAMS)
+    return;
+
+  // Acquire barrier: ensure we see the latest digi_sample_data[] written
+  // under DIGILock (the caller writes data, then release-store to
+  // digi_generation[]).  Also detect slot reuse: if the generation is
+  // zero the slot was reset.
+  if (SDL_GetAtomicInt(&digi_generation[index]) == 0)
+    return;
+
+  tSampleData sampleData = *data;
+  if (!sampleData.pSample || sampleData.iLength <= 0)
+    return;
+  float pan = digi_pan[index];
   DIGIQueueSampleData(stream, &sampleData, pan);
 }
 
@@ -354,16 +367,25 @@ int DIGISampleStart(tSampleData *data)
   bool bLoop = data->iFlags == DIGI_SAMPLE_LOOP_FLAGS;
   int iPan = data->iPan;
 
-  if (digi_stream[index]) {
-    DIGIReleaseStreamSlot(index);
-  }
-  ++digi_generation[index];
-
   // Compute initial pan: raw iPan [0, 0x10000], 0x8000 = center → [-1.0, 1.0]
   float fInitialPan = ((float)((int32)iPan) / (int32)0x8000) - 1.0f;
   if (fInitialPan < -1.0f) fInitialPan = -1.0f;
   if (fInitialPan >  1.0f) fInitialPan =  1.0f;
+
+  // Set shared state under lock, then release-store generation so the
+  // audio callback (which acquires the generation) sees consistent data.
   digi_pan[index] = fInitialPan;
+  digi_volume[index] = volume;
+  if (bLoop)
+    digi_sample_data[index] = *data;
+  SDL_SetAtomicInt(&digi_generation[index], SDL_GetAtomicInt(&digi_generation[index]) + 1);
+  DIGIUnlock();
+
+  // ---------- SDL stream operations (no DIGILock held) ----------
+
+  if (digi_stream[index]) {
+    DIGIReleaseStreamSlot(index);
+  }
 
   if (!digi_stream[index]) {
     SDL_AudioSpec spec;
@@ -371,27 +393,21 @@ int DIGISampleStart(tSampleData *data)
     spec.freq = 11025; // Sample rate
     spec.format = SDL_AUDIO_U8; // 8-bit unsigned audio
     digi_stream[index] = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, NULL, NULL);
-  }
-
-  if (!digi_stream[index]) {
-    //SDL_Log("DIGISampleStart: Couldn't create audio stream: %s", SDL_GetError());
-    DIGIUnlock();
-    return -1;
+    if (!digi_stream[index]) {
+      //SDL_Log("DIGISampleStart: Couldn't create audio stream: %s", SDL_GetError());
+      return -1;
+    }
   }
 
   SDL_LockAudioStream(digi_stream[index]);
 
   if (bLoop) {
-    digi_sample_data[index] = *data;
     SDL_SetAudioStreamGetCallback(digi_stream[index], DIGI_AudioStreamCallback, &digi_sample_data[index]);
   }
 
   // Set pitch in the stream
   SDL_SetAudioStreamFrequencyRatio(digi_stream[index], 1.0); // pitch
   SDL_SetAudioStreamFrequencyRatio(digi_stream[index], (float)data->iPitch / 0x10000);
-
-  // Remember the volume for this stream
-  digi_volume[index] = volume;
 
   // Set the gain for the audio stream
   float master_volume = (float)DIGIGetMasterVolume() / 0x7FFF; // Normalize to [0.0, 1.0] range
@@ -402,7 +418,6 @@ int DIGISampleStart(tSampleData *data)
   SDL_UnlockAudioStream(digi_stream[index]);
   SDL_ResumeAudioStreamDevice(digi_stream[index]);
 
-  DIGIUnlock();
   return index;
 }
 
@@ -424,7 +439,7 @@ int DIGISampleGeneration(int index)
     return -1;
 
   DIGILock();
-  int iGeneration = digi_generation[index];
+  int iGeneration = SDL_GetAtomicInt(&digi_generation[index]);
   DIGIUnlock();
   return iGeneration;
 }
@@ -471,7 +486,6 @@ void DIGIStopSample(int index)
   DIGILock();
   if (digi_stream[index]) {
     DIGIReleaseStreamSlot(index);
-    ++digi_generation[index];
   }
   DIGIUnlock();
 }
@@ -482,7 +496,6 @@ void DIGIClearAllStream()
   for (int i = 0; i < NUM_DIGI_STREAMS; i++) {
     if (digi_stream[i]) {
       DIGIDestroyStreamSlot(i);
-      ++digi_generation[i];
     }
   }
   DIGIUnlock();

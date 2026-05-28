@@ -1605,6 +1605,7 @@ void loadfatalsample()
 //0003B440
 void freefatalsample()
 {
+  DIGIClearAllStream();
   fre((void**)&SamplePtr[SOUND_SAMPLE_FATAL]); // 88 - Fatal sample
   fre((void**)&SamplePtr[SOUND_SAMPLE_BUTTON]); // 83 - Button sample
   fre((void**)&SamplePtr[SOUND_SAMPLE_START]); // 87 - Start sample
@@ -1618,6 +1619,7 @@ void freefatalsample()
 void releasesamples()
 {
   if (SoundCard) {
+    DIGIClearAllStream();
     for (int i = 0; i < 120; ++i) {
       fre((void**)&SamplePtr[i]);
       SamplePtr[i] = NULL;

@@ -78,7 +78,7 @@ static int s_iGPUPresentSkipFrames = 0;
 static int ROLLERGpuAvailable(void) {
     static int available = -1;
     if (available < 0) {
-#ifdef IS_PPC64
+#ifdef IS_POWERPC_BE
         // GPU pipeline creation (Vulkan/lavapipe) crashes on ppc64; disable by default.
         const char *env = getenv("ROLLER_ENABLE_GPU");
         available = (env && strcmp(env, "1") == 0) ? 1 : 0;

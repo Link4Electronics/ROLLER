@@ -26,7 +26,7 @@
 #include <string.h>
 #include <time.h>
 
-#ifdef IS_PPC64
+#ifdef IS_POWERPC_BE
 #include <asm/ptrace.h>
 #endif
 
@@ -525,7 +525,7 @@ static void GetSignalContextRegisters(void *pContext, uint64 *pullPc, uint64 *pu
     *pullPc = (uint64)pUContext->uc_mcontext.pc;
     *pullSp = (uint64)pUContext->uc_mcontext.sp;
   }
-#elif defined(IS_LINUX) && defined(IS_PPC64)
+#elif defined(IS_LINUX) && defined(IS_POWERPC_BE)
   {
     ucontext_t *pUContext = (ucontext_t *)pContext;
     *pullPc = (uint64)pUContext->uc_mcontext.regs->nip;
