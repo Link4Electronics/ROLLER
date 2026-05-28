@@ -589,7 +589,7 @@ static void control_ticks(int iMaxTicks, int iReturnIfNoTick)
   double dYawMotionCalc; // st7
   int iNumCarsTemp; // edi
   int j; // ecx
-  char bySampleValue; // ah
+  int8 bySampleValue; // ah
   int iNetworkArraySize; // ecx
   int iCarOffset; // edx
   int iMasterCarIdx; // ebx
@@ -911,7 +911,7 @@ static void control_ticks(int iMaxTicks, int iReturnIfNoTick)
         if (bySampleValue) {
           if ((int8)repsample[j] < 0 && bySampleValue > 0)
             sfxpend(bySampleValue - 1, j, (uint8)repvolume[j] << 8);
-          if (repsample[j] > 0 && (int8)newrepsample[j] < 0)
+          if ((int8)repsample[j] > 0 && (int8)newrepsample[j] < 0)
             sfxpend(-(int8)newrepsample[j] - 1, j, (uint8)repvolume[j] << 8);
           repsample[j] = newrepsample[j];
         }

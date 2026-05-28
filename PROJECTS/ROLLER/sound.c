@@ -2006,7 +2006,7 @@ void pannedsample(int iSampleIdx, int iHandle, int iPan)
   unsigned int iOldSampleIdx; // ecx
 
   iLocalHandle = iHandle;
-  if (soundon && SamplePtr[iSampleIdx]) {
+  if (soundon && iSampleIdx < 120 && SamplePtr[iSampleIdx]) {
     //iSampleOffset = iSampleIdx << 6;
     iExistingHandle = SampleHandleCar[iSampleIdx].handles[0];
     if (iExistingHandle != -1) {
