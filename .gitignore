@@ -388,3 +388,6 @@ packages.microsoft.gpg
 .codex
 CLAUDE.md
 .worktrees/
+
+# CMake build directory
+build/
