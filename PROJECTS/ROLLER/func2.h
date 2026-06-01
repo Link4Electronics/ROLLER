@@ -63,6 +63,7 @@ int fatkbhit();
 int fatgetch();
 int control_key_matches_required_pair_type(int iControlIdx, int iKey);
 int control_key_is_duplicate_in_player_set(int iControlIdx, int iKey);
+int pause_axis_tune_active(void);
 void release_key_int();
 void clear_border(int x, int y, int iWidth, int iLines);
 void setdirectory(const char *szAppPath);
@@ -91,7 +92,6 @@ void getconfigvalueuc(const char *szConfigText, const char *szVarName, uint8 *pb
 void displaycalibrationbar(int iX, int iY, int iValue);
 void blankwindow(int iX1, int iY1, int iX2, int iY2);
 void volumebar(int iX, int iVolume);
-void remove_uncalibrated();
 void LoadRecords();
 void SaveRecords();
 uint8 *copy_int(uint8 *pDest, uint32 uiValue);

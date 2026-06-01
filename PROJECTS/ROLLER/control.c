@@ -46,15 +46,7 @@ int stops[10];                    //001497D0
 float trial_times[96];            //001497F8
 float eng_chg_revs[168];          //00149978
 int FirstTick;                    //00149C18
-int JBYmax;                       //00149C24
-int JBYmin;                       //00149C30
-int JBXmin;                       //00149C34
-int JBXmax;                       //00149C3C
-int JAYmax;                       //00149C40
-int JAXmax;                       //00149C44
 int numstops;                     //00149C48
-int JAYmin;                       //00149C4C
-int JAXmin;                       //00149C50
 int race_started;                 //00149C54
 int updates;                      //00149C58
 float RecordLaps[25];             //00149C5C
@@ -4941,6 +4933,8 @@ void autocar2(tCar *pCar)
         ++iCarArrayIdx;
       } while (iCarIdx < numcars);
     }
+    if (iHumanCarIdx == -1)
+      goto LABEL_18;
     iPositionDifference = (int8)pCar->byLapNumber * TRAK_LEN + pCar->nCurrChunk - (TRAK_LEN * (int8)Car[iHumanCarIdx].byLapNumber + Car[iHumanCarIdx].nCurrChunk);// Calculate position difference between AI car and leading human player
     if (iPositionDifference < 80) {
       if (iPositionDifference <= 20) {                                         // Special logic for car design 13 (boss car) - reduce speed when near human player
@@ -7326,7 +7320,8 @@ void findnearsection(tCar *pCar, int *piNearestChunk)
         dForwardExtraAbsX = fabs(dForwardExtraCarX);
         fForwardExtraDistance = (float)sqrt(dForwardExtraAbsX * dForwardExtraAbsX + dForwardExtraAbsY * dForwardExtraAbsY + dForwardExtraAbsZ * dForwardExtraAbsZ)
           - pForwardExtraData->fTrackHalfLength;
-        if ((fForwardExtraPosition >= -400.0 || GroundColour[iForwardExtraGroundIdx][2] >= 0) && fForwardExtraDistance < (double)fMinValidDistance) {
+        if (iForwardExtraGroundIdx >= 0 && iForwardExtraGroundIdx < TRAK_LEN && //bounds check added by ROLLER
+          (fForwardExtraPosition >= -400.0 || GroundColour[iForwardExtraGroundIdx][2] >= 0) && fForwardExtraDistance < (double)fMinValidDistance) {
           fMinValidDistance = fForwardExtraDistance;
           if (iForwardExtraIdx < iTrakLen) {
             if (iForwardExtraIdx >= 0)
@@ -7337,7 +7332,8 @@ void findnearsection(tCar *pCar, int *piNearestChunk)
             pCar->iLastValidChunk = iForwardExtraIdx - iTrakLen;
           }
         }
-        if ((fForwardExtraDotProduct * 4.0 + -500.0 <= fForwardExtraPosition || GroundColour[iForwardExtraGroundIdx][2] >= 0)
+        if (iForwardExtraGroundIdx >= 0 && iForwardExtraGroundIdx < TRAK_LEN && //bounds check added by ROLLER
+          (fForwardExtraDotProduct * 4.0 + -500.0 <= fForwardExtraPosition || GroundColour[iForwardExtraGroundIdx][2] >= 0)
           && fForwardExtraDistance < (double)fMinCurrentDistance) {
           fMinCurrentDistance = fForwardExtraDistance;
           if (iForwardExtraIdx < iTrakLen) {
@@ -7381,7 +7377,8 @@ void findnearsection(tCar *pCar, int *piNearestChunk)
           dBackwardExtraAbsX = fabs(dBackwardExtraCarX);
           fBackwardExtraDistance = (float)sqrt(dBackwardExtraAbsX * dBackwardExtraAbsX + dBackwardExtraAbsY * dBackwardExtraAbsY + dBackwardExtraAbsZ * dBackwardExtraAbsZ)
             - pBackwardExtraData->fTrackHalfLength;
-          if ((fBackwardExtraPosition >= -400.0 || GroundColour[iBackwardExtraGroundIdx][2] >= 0) && fBackwardExtraDistance < (double)fMinValidDistance) {
+          if (iBackwardExtraGroundIdx >= 0 && iBackwardExtraGroundIdx < TRAK_LEN && //bounds check added by ROLLER
+            (fBackwardExtraPosition >= -400.0 || GroundColour[iBackwardExtraGroundIdx][2] >= 0) && fBackwardExtraDistance < (double)fMinValidDistance) {
             fMinValidDistance = fBackwardExtraDistance;
             if (iBackwardExtraIdx < iTrakLen) {
               if (iBackwardExtraIdx >= 0)
@@ -7392,7 +7389,8 @@ void findnearsection(tCar *pCar, int *piNearestChunk)
               pCar->iLastValidChunk = iBackwardExtraIdx - iTrakLen;
             }
           }
-          if ((fBackwardExtraDotProduct * 4.0 + -500.0 <= fBackwardExtraPosition || GroundColour[iBackwardExtraGroundIdx][2] >= 0)
+          if (iBackwardExtraGroundIdx >= 0 && iBackwardExtraGroundIdx < TRAK_LEN && //bounds check added by ROLLER
+            (fBackwardExtraDotProduct * 4.0 + -500.0 <= fBackwardExtraPosition || GroundColour[iBackwardExtraGroundIdx][2] >= 0)
             && fBackwardExtraDistance < (double)fMinCurrentDistance) {
             fMinCurrentDistance = fBackwardExtraDistance;
             if (iBackwardExtraIdx < iTrakLen) {
